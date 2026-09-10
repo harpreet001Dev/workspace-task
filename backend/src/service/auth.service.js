@@ -57,7 +57,7 @@ const login = async (data) => {
         {
             token: hashedRefreshToken,
             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-            
+
         },
         {
             upsert: true
@@ -68,7 +68,7 @@ const login = async (data) => {
 
 const refresh = async (refreshToken) => {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
-    
+
     const storedToken = await RefreshToken.findOne({
         userId: decoded.id,
         isRevoked: false
@@ -111,4 +111,35 @@ const refresh = async (refreshToken) => {
 
 }
 
-export default {register, login, refresh}
+const logout = async (refreshToken) => {
+    if (!refreshToken) {
+        throw new ApiError(401, "Refresh token is required");
+    }
+
+    const refreshTokens = await RefreshToken.find({
+        revokedAt: null,
+    });
+
+    let storedToken = null;
+
+    for (const tokenRecord of refreshTokens) {
+        const isMatch = bcrypt.compare(refreshToken, tokenRecord.token)
+
+        if (isMatch) {
+            storedToken = tokenRecord;
+            break;
+        }
+    }
+
+    if (!storedToken) {
+        throw new ApiError(401, "Invalid refresh token");
+    }
+
+    storedToken.revokedAt = new Date();
+    await storedToken.save();
+
+    return {
+        message: "Logged out successfully",
+    };
+};
+export default { register, login, refresh, logout }
