@@ -19,6 +19,7 @@ services:
     image: mongo:7
     container_name: workspace-mongodb
     restart: unless-stopped
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     ports:
       - "27017:27017"
     volumes:

@@ -1,5 +1,5 @@
 import express from "express";
-import {register,login,refresh ,getMe, logout} from "../controllers/auth.contoller.js";
+import {register,login,refresh, logout} from "../controllers/auth.contoller.js";
 import validate from "../middleware/validate.middleware.js";
 import { registerSchema, loginSchema } from "../validatioins/auth.validation.js";
 import authtenticateUser from "../middleware/auth.middleware.js";
@@ -14,7 +14,6 @@ router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
 router.post('/refresh', refresh);
 router.post('/logout', logout);
-router.get('/getme',authtenticateUser, getMe);
 
 
 export default router;

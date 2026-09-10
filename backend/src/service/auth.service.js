@@ -142,4 +142,5 @@ const logout = async (refreshToken) => {
         message: "Logged out successfully",
     };
 };
+
 export default { register, login, refresh, logout }

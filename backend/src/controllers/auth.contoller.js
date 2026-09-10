@@ -23,8 +23,8 @@ export const login = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: 'strict',
-        // maxAge: 7 * 24 * 60 * 60 * 1000, 
-        maxAge: 5 * 60 * 1000   
+        maxAge: 7 * 24 * 60 * 60 * 1000,  
+        // maxAge: 5 * 60 * 1000   
 
     })
 
@@ -52,8 +52,8 @@ export const refresh = asyncHandler(async (req, res) => {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: 'strict',
-        // maxAge: 7 * 24 * 60 * 60 * 1000 
-        maxAge: 5 * 60 * 1000  
+        maxAge: 7 * 24 * 60 * 60 * 1000  
+        // maxAge: 5 * 60 * 1000  
 
     })
 
@@ -65,13 +65,6 @@ export const refresh = asyncHandler(async (req, res) => {
     })
 })
 
-export const getMe = asyncHandler(async (req, res) => {
-    console.log("inside get container")
-    res.status(200).json({
-        status: "success",
-
-    })
-})
 
 
 export const logout = asyncHandler(async (req, res) => {
