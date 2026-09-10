@@ -47,12 +47,13 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
   return bcrypt.compare(enteredPassword, this.password);
 };
 
-userSchema.methods.generateAccessToken = function () {
+userSchema.methods.generateAccessToken = function ( workspaceId,role) {
   return jwt.sign(
     {
       id: this._id,
       email: this.email,
-      role: this.role,
+      role,
+      workspaceId
     },
     process.env.ACCESS_TOKEN_SECRET,
     {

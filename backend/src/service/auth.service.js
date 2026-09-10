@@ -4,6 +4,7 @@ import ApiError from '../utlis/apiError.js';
 import RefreshToken from '../models/RefreshToken.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'
+import WorkspaceMember from '../models/WorkspaceMember.js';
 
 const register = async (data) => {
     const { name, email, password } = data;
@@ -47,7 +48,20 @@ const login = async (data) => {
     if (!matchPassword) {
         throw new ApiError(401, 'Invalid Credentials!')
     }
-    const accessToken = user.generateAccessToken();
+
+    const membership = await WorkspaceMember.findOne({
+        userId: user._id,
+    });
+
+    if (!membership) {
+        throw new ApiError(
+            403,
+            "You are not a member of any workspace. Please ask an admin for an invitation."
+        );
+    }
+
+    const accessToken = user.generateAccessToken(membership.workspaceId,
+        membership.role);
     const refreshToken = user.generateRefreshToken();
 
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10)
