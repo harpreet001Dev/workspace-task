@@ -5,6 +5,7 @@ import RefreshToken from '../models/RefreshToken.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken'
 import WorkspaceMember from '../models/WorkspaceMember.js';
+import Workspace from '../models/Workspace.js'
 
 const register = async (data) => {
     const { name, email, password } = data;
@@ -59,6 +60,8 @@ const login = async (data) => {
             "You are not a member of any workspace. Please ask an admin for an invitation."
         );
     }
+    const workspace = await Workspace.findById(membership.workspaceId)
+    .select("_id name");
 
     const accessToken = user.generateAccessToken(membership.workspaceId,
         membership.role);
@@ -77,7 +80,7 @@ const login = async (data) => {
             upsert: true
         }
     )
-    return { user: existedUser, accessToken, refreshToken }
+    return { user: existedUser, workspace, accessToken, refreshToken }
 }
 
 const refresh = async (refreshToken) => {

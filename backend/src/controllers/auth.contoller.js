@@ -16,7 +16,7 @@ export const register = asyncHandler(async (req, res) => {
 
 export const login = asyncHandler(async (req, res) => {
     const result = await authService.login(req.body);
-    const { user, accessToken, refreshToken } = result;
+    const { user, workspace, accessToken, refreshToken } = result;
 
 
     res.cookie('refreshToken', refreshToken, {
@@ -33,6 +33,7 @@ export const login = asyncHandler(async (req, res) => {
         status: "success",
         data: {
             user,
+            workspace,
             accessToken
         }
     })
