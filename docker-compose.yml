@@ -1,5 +1,4 @@
 services:
-
   api:
     build: ./backend
     container_name: workspace-api
@@ -10,7 +9,8 @@ services:
     env_file:
       - ./backend/.env
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -24,6 +24,12 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
 
   mongo-express:
     image: mongo-express
@@ -33,6 +39,17 @@ services:
       ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017
       ME_CONFIG_BASICAUTH_USERNAME: admin
       ME_CONFIG_BASICAUTH_PASSWORD: admin
+
+  frontend:
+    build: ./frontend
+    container_name: workspace-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - api
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
 volumes:
   mongodb_data:
