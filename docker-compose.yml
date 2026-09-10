@@ -1,15 +1,19 @@
 services:
+
   api:
     build: ./backend
     container_name: workspace-api
     restart: unless-stopped
-    command: npm start
+    command: npm run dev
     ports:
       - "5000:5000"
     env_file:
       - ./backend/.env
     depends_on:
       - mongodb
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
 
   mongodb:
     image: mongo:7
@@ -19,6 +23,15 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongodb:27017
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin
 
 volumes:
   mongodb_data:
