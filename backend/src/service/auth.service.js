@@ -1,6 +1,8 @@
 
 import User from '../models/User.js';
 import ApiError from '../utlis/apiError.js';
+import RefreshToken from '../models/RefreshToken.js';
+import bcrypt from 'bcryptjs';
 
 const register = async (data) => {
     const { name, email, password } = data;
@@ -27,5 +29,41 @@ const register = async (data) => {
 
 }
 
+const login = async (data) => {
 
-export default {register}
+    const { email, password } = data;
+    if (!email || !password) {
+        throw new ApiError(400, "Email and Password are required");
+    }
+    const user = await User.findOne({ email }).select('+password')
+
+
+    if (!user) {
+        throw new ApiError(401, "User not found!")
+    }
+
+    const matchPassword = await user.comparePassword(password);
+    if (!matchPassword) {
+        throw new ApiError(401, 'Invalid Credentials!')
+    }
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10)
+    const existedUser = await User.findById(user._id)
+    await RefreshToken.findOneAndUpdate(
+        { userId: user._id },
+        {
+            token: hashedRefreshToken,
+            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            
+        },
+        {
+            upsert: true
+        }
+    )
+    return { user: existedUser, accessToken, refreshToken }
+}
+
+
+export default {register, login}

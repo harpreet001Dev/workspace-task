@@ -56,7 +56,8 @@ userSchema.methods.generateAccessToken = function () {
     },
     process.env.ACCESS_TOKEN_SECRET,
     {
-      expiresIn: '15m',
+      expiresIn: '5m',
+      // expiresIn: '15m',
     }
   );
 };
@@ -68,7 +69,8 @@ userSchema.methods.generateRefreshToken = function () {
     },
     process.env.REFRESH_TOKEN_SECRET,
     {
-      expiresIn: '7d',
+      expiresIn: '15m',
+      // expiresIn: '7d',
     }
   );
 };
