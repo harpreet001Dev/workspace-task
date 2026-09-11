@@ -9,11 +9,13 @@ import authorizeRole from "../middleware/role.middleware.js";
 const router = express.Router();
 
 router.post('/create', authtenticateUser,validate(createWorkspaceSchema), createWorkspace);
+
 router.post(
-    "/:workspaceId/invite",
+    "/invite",
     authtenticateUser,
     authorizeRole("owner"),
     createInvite
 );
+
 router.post("/invite/:token/accept",authtenticateUser,acceptInvite)
 export default router;

@@ -58,6 +58,8 @@ api.interceptors.response.use(
 
         try {
             const newToken = await refreshAccessToken();
+            console.log("OLD TOKEN:", getToken());
+            console.log("NEW TOKEN:", newToken);
             originalRequest.headers.Authorization = `Bearer ${newToken}`;
             return api(originalRequest);
         } catch (refreshError) {
@@ -150,9 +152,34 @@ const Register = (data) => {
 const Login = (data) => {
     return post(endPoints.LOGIN.url, data, endPoints.LOGIN.auth)
 }
+const Logout = () => {
+    return post(endPoints.LOGOUT.url, {}, endPoints.LOGOUT.auth)
+}
+const Dashboard = (data) => {
+    return get(endPoints.Dashboard.url, endPoints.Dashboard.auth)
+}
+const Board = (data) => {
+    return get(endPoints.Board.url, endPoints.Board.auth)
+}
+const CreateWorkspace = (data) => {
+    return post(endPoints.CreateWorkspace.url, data, endPoints.CreateWorkspace.auth)
+}
+const CreateInvite = () => {
+    return post(endPoints.CreateInvite.url, {}, endPoints.CreateInvite.auth)
+}
+const AcceptInvite = (token) => {
+    const url = endPoints.AcceptInvite.url.replace(':token', token)
+    return post(url, {}, endPoints.AcceptInvite.auth)
+}
 
 
 export default {
     Login,
     Register,
+    Logout,
+    CreateWorkspace,
+    CreateInvite,
+    AcceptInvite,
+    Dashboard,
+    Board,
 }

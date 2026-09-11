@@ -36,14 +36,47 @@ const Login = () => {
         try {
             const response = await api.Login(data)
             if (response.status === 'success') {
-                dispatch(
-                loginSuccess({
+                const loginPayload = {
                     user: response.data?.user,
                     workspace: response.data.workspace,
                     accessToken: response.data?.accessToken,
-                })
-            );
-                navigate('/dashboard')
+                };
+
+                dispatch(loginSuccess(loginPayload));
+
+                const pendingInviteToken = localStorage.getItem('pendingInviteToken');
+
+                if (pendingInviteToken) {
+                    try {
+                        const inviteResponse = await api.AcceptInvite(pendingInviteToken);
+                        const invitedWorkspace = inviteResponse?.data?.workspace || {
+                            _id: inviteResponse?.data?.workspaceId,
+                            name: 'Workspace',
+                            role: 'member',
+                        };
+
+                        dispatch(
+                            loginSuccess({
+                                ...loginPayload,
+                                workspace: invitedWorkspace,
+                                accessToken: inviteResponse?.data?.accessToken || loginPayload.accessToken,
+                            })
+                        );
+
+                        localStorage.removeItem('pendingInviteToken');
+                        navigate('/dashboard');
+                        return;
+                    } catch (inviteError) {
+                        localStorage.removeItem('pendingInviteToken');
+                    }
+                }
+
+                if (response.data?.workspace) {
+                    navigate('/dashboard')
+                    return;
+                }
+
+                navigate('/landing')
             }
 
         } catch (error) {

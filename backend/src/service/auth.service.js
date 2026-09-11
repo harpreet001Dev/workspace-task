@@ -19,14 +19,12 @@ const register = async (data) => {
         name,
         email,
         password,
-        role: 'user',
     });
 
     return {
         id: user._id,
         name: user.name,
         email: user.email,
-        role: user.role,
         createdAt: user.createdAt,
     };
 
@@ -54,17 +52,26 @@ const login = async (data) => {
         userId: user._id,
     });
 
-    if (!membership) {
-        throw new ApiError(
-            403,
-            "You are not a member of any workspace. Please ask an admin for an invitation."
-        );
-    }
-    const workspace = await Workspace.findById(membership.workspaceId)
-    .select("_id name");
+    let workspace = null;
+    let role = null;
 
-    const accessToken = user.generateAccessToken(membership.workspaceId,
-        membership.role);
+    if (membership) {
+        workspace = await Workspace.findById(membership.workspaceId)
+            .select("_id name");
+
+        role = membership.role;
+
+        workspace = {
+            _id: workspace._id,
+            name: workspace.name,
+            role,
+        };
+    }
+
+    const accessToken = user.generateAccessToken(
+        workspace?._id || null,
+        role
+    );
     const refreshToken = user.generateRefreshToken();
 
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10)
@@ -85,6 +92,8 @@ const login = async (data) => {
 
 const refresh = async (refreshToken) => {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
+
+    // console.log(decoded, "decoded");
 
     const storedToken = await RefreshToken.findOne({
         userId: decoded.id,
@@ -110,7 +119,8 @@ const refresh = async (refreshToken) => {
     storedToken.isRevoked = true
     await storedToken.save();
 
-    const accessToken = user.generateAccessToken();
+    const accessToken = user.generateAccessToken(decoded.workspaceId,
+        decoded.role);
     const newRefreshToken = user.generateRefreshToken();
 
     const hashedRefreshToken = await bcrypt.hash(newRefreshToken, 10);

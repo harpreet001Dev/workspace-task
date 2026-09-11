@@ -23,13 +23,23 @@ const authtenticateUser = async (req, res, next) => {
         if (!user) {
             throw new ApiError(401, "Unauthorized User");
         }
-        console.log(user._id,"user._id");
-        console.log(decoded.workspaceId,"decoded.workspaceId");
-        
-        
+        const workspaceId = decoded.workspaceId || null;
+
+        if (!workspaceId) {
+            req.user = {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                workspaceId: null,
+                role: decoded.role || null,
+            };
+
+            return next();
+        }
+
         const membership = await WorkspaceMember.findOne({
             userId: user._id,
-            workspaceId: decoded.workspaceId,
+            workspaceId,
         });
 
         if (!membership) {

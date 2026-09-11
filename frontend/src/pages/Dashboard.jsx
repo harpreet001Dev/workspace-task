@@ -3,41 +3,10 @@ import ProjectCard from "../components/dashboard/ProjectCard";
 import TaskItem from "../components/dashboard/TaskItem";
 import ActivityItem from "../components/dashboard/ActivityItem";
 import { useSelector } from "react-redux";
+import api from "../api/api";
+import { useEffect, useState } from "react";
 
-const dashboardStats = [
-  {
-    label: "Projects",
-    value: 6,
-    meta: "2 from last month",
-    icon: "▣",
-    colorClass: "bg-indigo-500/90",
-    accentClass: "bg-indigo-400",
-  },
-  {
-    label: "My Tasks",
-    value: 12,
-    meta: "4 from last week",
-    icon: "☑",
-    colorClass: "bg-violet-500/90",
-    accentClass: "bg-violet-400",
-  },
-  {
-    label: "Members",
-    value: 18,
-    meta: "3 new this month",
-    icon: "◍",
-    colorClass: "bg-sky-500/90",
-    accentClass: "bg-sky-400",
-  },
-  {
-    label: "Due Soon",
-    value: 4,
-    meta: "2 this week",
-    icon: "◔",
-    colorClass: "bg-amber-500/90",
-    accentClass: "bg-amber-400",
-  },
-];
+
 
 const projects = [
   {
@@ -66,12 +35,6 @@ const projects = [
   },
 ];
 
-const tasks = [
-  { title: "Fix authentication bug", status: "todo", priority: "High", dueDate: "Today", dueLabel: "Today" },
-  { title: "Design dashboard UI", status: "in-progress", priority: "Medium", dueDate: "Tomorrow", dueLabel: "Tomorrow" },
-  { title: "Set up MongoDB aggregation", status: "todo", priority: "Low", dueDate: "Nov 22", dueLabel: "Nov 22" },
-  { title: "Write API documentation", status: "done", priority: "Medium", dueDate: "Nov 25", dueLabel: "Nov 25" },
-];
 
 const activityItems = [
   {
@@ -108,7 +71,7 @@ const activityItems = [
 
 const sidebarMembers = [
   { initials: "B", name: "Bedu", role: "Owner" },
-  { initials: "A", name: "Alex Johnson", role: "Admin" },
+  { initials: "A", name: "Alex Johnson", role: "Owner" },
   { initials: "S", name: "Sarah Miller", role: "Member" },
   { initials: "J", name: "John Doe", role: "Member" },
   { initials: "E", name: "Emily Davis", role: "Member" },
@@ -116,6 +79,64 @@ const sidebarMembers = [
 
 const Dashboard = () => {
   const user = useSelector((state) => state.auth.user);
+  const workspace = useSelector((state) => state.auth.workspace);
+  const [data, setData] = useState([]);
+  const [inviteMessage, setInviteMessage] = useState("");
+
+  const getDashboardData = async () => {
+    try {
+      const res = await api.Dashboard();
+      if (res.success) {
+        setData(res?.data)
+      }
+    } catch (error) {
+      console.log(error, "error")
+    }
+  }
+
+  const handleInviteClick = async () => {
+    try {
+      const res = await api.CreateInvite();
+      const inviteLink = res?.data?.inviteLink;
+
+      if (inviteLink) {
+        await navigator.clipboard.writeText(inviteLink);
+        setInviteMessage("Invite link copied to clipboard.");
+        return;
+      }
+
+      setInviteMessage("Invite created successfully.");
+    } catch (error) {
+      console.error(error);
+      setInviteMessage("Unable to create invite right now.");
+    }
+  };
+
+  useEffect(() => {
+    getDashboardData()
+  }, [])
+
+  const dashboardStats = [
+    {
+      label: "Projects",
+      value: data?.stats?.totalProjects || 0,
+      icon: "▣",
+      colorClass: "bg-indigo-500/90",
+    },
+    {
+      label: "My Tasks",
+      value: data?.stats?.myTasks || 0,
+      icon: "☑",
+      colorClass: "bg-violet-500/90",
+    },
+    {
+      label: "Members",
+      value: data?.stats?.members || 0,
+      icon: "◍",
+      colorClass: "bg-sky-500/90",
+    },
+
+  ];
 
 
   return (
@@ -138,6 +159,15 @@ const Dashboard = () => {
             <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-800/60 text-slate-200">
               ⚙
             </button>
+            {workspace?.role === "owner" &&(
+            <button
+              onClick={handleInviteClick}
+              className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:brightness-110"
+            >
+              + Invite
+            </button>
+
+            )}
             <div className="flex items-center gap-3 rounded-xl border border-slate-700/80 bg-slate-800/60 px-2 py-1.5">
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 font-semibold text-white">
                 {user?.name?.charAt(0).toUpperCase()}
@@ -146,6 +176,12 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+        {inviteMessage && (
+          <div className="mb-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-300">
+            {inviteMessage}
+          </div>
+        )}
 
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -179,8 +215,8 @@ const Dashboard = () => {
               </div>
 
               <div className="space-y-3">
-                {tasks.map((task) => (
-                  <TaskItem key={task.title} {...task} />
+                {data?.myTasks?.map((task) => (
+                  <TaskItem key={task._id} {...task} />
                 ))}
               </div>
             </div>
@@ -207,8 +243,12 @@ const Dashboard = () => {
               </div>
 
               <div className="space-y-4">
-                {projects.map((project) => (
-                  <ProjectCard key={project.title} {...project} />
+                {data?.projectsWithMembers?.map((project) => (
+                  <ProjectCard
+                    key={project._id}
+                    title={project.name}
+                    members={project.totalMembers}
+                  />
                 ))}
               </div>
             </div>

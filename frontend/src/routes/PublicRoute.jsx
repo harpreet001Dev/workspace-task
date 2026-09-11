@@ -4,9 +4,10 @@ const PublicRoute = () => {
   const isAuthenticated = useSelector(
     (state) => state.auth.isAuthenticated
   );
+  const workspace = useSelector((state) => state.auth.workspace);
 
   return isAuthenticated ? (
-    <Navigate to="/dashboard" replace />
+    <Navigate to={workspace ? "/dashboard" : "/landing"} replace />
   ) : (
     <Outlet />
   );

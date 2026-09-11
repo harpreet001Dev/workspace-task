@@ -4,6 +4,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
     user: JSON.parse(localStorage.getItem("user")) || null,
     workspace: JSON.parse(
+
         localStorage.getItem("workspace")
     ) || null,
 
@@ -46,6 +47,12 @@ const authSlice = createSlice({
                 JSON.stringify(action.payload.workspace)
             );
         },
+        refreshTokenSuccess: (state, action) => {
+            state.accessToken = action.payload;
+            state.isAuthenticated = true;
+
+            localStorage.setItem("accesstoken", action.payload);
+        },
 
         loginFailure: (state, action) => {
             state.loading = false;
@@ -54,12 +61,15 @@ const authSlice = createSlice({
 
         logout: (state) => {
             state.user = null;
+            state.workspace = null;
             state.accessToken = null;
             state.isAuthenticated = false;
             state.loading = false;
             state.error = null;
 
             localStorage.removeItem("accesstoken");
+            localStorage.removeItem("user");
+            localStorage.removeItem("workspace");
         },
     },
 });
@@ -67,8 +77,11 @@ const authSlice = createSlice({
 export const {
     loginStart,
     loginSuccess,
+    refreshTokenSuccess,
     loginFailure,
     logout,
 } = authSlice.actions;
 
 export default authSlice.reducer;
+
+

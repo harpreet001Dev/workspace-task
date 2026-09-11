@@ -10,6 +10,7 @@ const createTask = async (boardId, createdBy, data) => {
     columnId,
     priority,
     order,
+    assignedTo,
   } = data;
 
   // Check board exists
@@ -41,6 +42,7 @@ const createTask = async (boardId, createdBy, data) => {
     createdBy,
     priority,
     order,
+    assignedTo,
   });
 
   return task;
