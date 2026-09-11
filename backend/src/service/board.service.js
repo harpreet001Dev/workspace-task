@@ -4,6 +4,8 @@ import Workspace from "../models/Workspace.js";
 import Board from "../models/Board.js";
 import BoardMember from "../models/BoardMember.js";
 import WorkspaceMember from '../models/WorkspaceMember.js'
+import Column from '../models/Column.js';
+import mongoose from 'mongoose';
 
 const createBoard = async (workspaceId, createdBy, data) => {
     const { name } = data;
@@ -19,10 +21,20 @@ const createBoard = async (workspaceId, createdBy, data) => {
         workspaceId,
         createdBy,
     });
+
     await BoardMember.create({
         boardId: board._id,
         userId: createdBy,
     });
+
+    const defaultColumns = [
+        { name: "To do", boardId: board._id, order: 1 },
+        { name: "In progress", boardId: board._id, order: 2 },
+        { name: "Review", boardId: board._id, order: 3 },
+        { name: "Done", boardId: board._id, order: 4 },
+    ];
+
+    await Column.insertMany(defaultColumns);
 
     return board;
 };
@@ -126,7 +138,17 @@ const getUserBoards = async (userId, workspaceId) => {
       },
     },
 
-    // 6. Shape response
+    // 6. Get board columns
+    {
+      $lookup: {
+        from: "columns",
+        localField: "project._id",
+        foreignField: "boardId",
+        as: "columns",
+      },
+    },
+
+    // 7. Shape response
     {
       $project: {
         _id: "$project._id",
@@ -138,10 +160,21 @@ const getUserBoards = async (userId, workspaceId) => {
         totalMembers: {
           $size: "$members",
         },
+        columns: {
+          $map: {
+            input: { $sortArray: { input: "$columns", sortBy: { order: 1 } } },
+            as: "column",
+            in: {
+              _id: "$$column._id",
+              name: "$$column.name",
+              order: "$$column.order",
+            },
+          },
+        },
       },
     },
 
-    // 7. Newest projects first
+    // 8. Newest projects first
     {
       $sort: {
         createdAt: -1,

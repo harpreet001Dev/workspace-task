@@ -32,6 +32,14 @@ const endPoints={
     Board:{
         url:'/board',
         auth:true
+    },
+    CreateBoard:{
+        url:'/board/:workspaceId',
+        auth:true
+    },
+    CreateTask:{
+        url:'/task/:boardId',
+        auth:true
     }
 }
 

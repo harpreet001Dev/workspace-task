@@ -5,7 +5,7 @@ const columnSchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      enum: ["To Do", "In Progress", "Done"],
+      enum: ["To do", "In progress", "Review", "Done"],
       trim: true,
     },
 

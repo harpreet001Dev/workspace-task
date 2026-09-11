@@ -164,6 +164,14 @@ const Board = (data) => {
 const CreateWorkspace = (data) => {
     return post(endPoints.CreateWorkspace.url, data, endPoints.CreateWorkspace.auth)
 }
+const CreateBoard = (workspaceId, data) => {
+    const url = endPoints.CreateBoard.url.replace(':workspaceId', workspaceId)
+    return post(url, data, endPoints.CreateBoard.auth)
+}
+const CreateTask = (boardId, data) => {
+    const url = endPoints.CreateTask.url.replace(':boardId', boardId)
+    return post(url, data, endPoints.CreateTask.auth)
+}
 const CreateInvite = () => {
     return post(endPoints.CreateInvite.url, {}, endPoints.CreateInvite.auth)
 }
@@ -178,6 +186,8 @@ export default {
     Register,
     Logout,
     CreateWorkspace,
+    CreateBoard,
+    CreateTask,
     CreateInvite,
     AcceptInvite,
     Dashboard,

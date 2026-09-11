@@ -54,6 +54,7 @@ export const addBoardMember = asyncHandler(async (req, res) => {
 export const getBoards = asyncHandler(async (req, res) => {
   const board = await boardService.getUserBoards(
     req.user._id,
+    req.user.workspaceId
   );
   res.status(201).json({
     success: true,
