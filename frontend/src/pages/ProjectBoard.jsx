@@ -2,23 +2,16 @@ import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import api from "../api/api";
-import SortableTask from "../components/board/SortableTask";
 import BoardColumn from "../components/board/BoardColumn";
 import {
     DndContext,
     DragOverlay,
-    closestCorners,
-    useDroppable
 } from "@dnd-kit/core";
-
 import {
-    SortableContext,
-    useSortable,
-    verticalListSortingStrategy,
     arrayMove,
 } from "@dnd-kit/sortable";
+import socket from "../sockets/socket";
 
-import { CSS } from "@dnd-kit/utilities";
 
 const accentClasses = [
     "bg-gradient-to-br from-indigo-500 to-violet-500",
@@ -28,28 +21,6 @@ const accentClasses = [
     "bg-gradient-to-br from-amber-500 to-orange-500",
     "bg-gradient-to-br from-fuchsia-500 to-purple-500",
 ];
-
-const columnDotClasses = {
-    "To do": "bg-indigo-500",
-    "In progress": "bg-blue-500",
-    Review: "bg-amber-500",
-    Done: "bg-emerald-500",
-};
-
-
-
-
-const DroppableColumn = ({ column, children }) => {
-    const { setNodeRef } = useDroppable({
-        id: column._id,
-    });
-
-    return (
-        <div ref={setNodeRef}>
-            {children}
-        </div>
-    );
-};
 
 const ProjectBoard = () => {
     const user = useSelector((state) => state.auth.user);
@@ -211,6 +182,17 @@ const ProjectBoard = () => {
     useEffect(() => {
         loadBoard();
     }, [boardId]);
+
+    useEffect(() => {
+    if (!boardId) {
+        return;
+    }
+
+    socket.emit("board:join", { boardId });
+    return () => {
+        socket.emit("board:leave", { boardId });
+    };
+}, [boardId]);
 
     useEffect(() => {
         if (board) {
