@@ -18,137 +18,6 @@ const columnDotClasses = {
   Done: "bg-emerald-500",
 };
 
-const sampleTasks = {
-  "To do": [
-    {
-      title: "Design login page",
-      label: "UI/UX",
-      labelClass: "bg-pink-100 text-pink-700",
-      priority: "High",
-      priorityClass: "bg-pink-100 text-pink-700",
-      due: "Oct 25",
-      assignee: "A",
-      assigneeColor: "bg-indigo-500",
-    },
-    {
-      title: "Set up database",
-      label: "Backend",
-      labelClass: "bg-sky-100 text-sky-700",
-      priority: "Medium",
-      priorityClass: "bg-amber-100 text-amber-700",
-      due: "Oct 28",
-      assignee: "B",
-      assigneeColor: "bg-violet-500",
-    },
-    {
-      title: "Write documentation",
-      label: "Documentation",
-      labelClass: "bg-violet-100 text-violet-700",
-      priority: "Low",
-      priorityClass: "bg-emerald-100 text-emerald-700",
-      due: "Oct 30",
-      assignee: "C",
-      assigneeColor: "bg-slate-500",
-    },
-    {
-      title: "Create project structure",
-      label: "DevOps",
-      labelClass: "bg-amber-100 text-amber-700",
-      priority: "Medium",
-      priorityClass: "bg-amber-100 text-amber-700",
-      due: "Oct 22",
-      assignee: "D",
-      assigneeColor: "bg-emerald-500",
-    },
-  ],
-  "In progress": [
-    {
-      title: "Implement authentication",
-      label: "Backend",
-      labelClass: "bg-sky-100 text-sky-700",
-      priority: "High",
-      priorityClass: "bg-pink-100 text-pink-700",
-      due: "Oct 26",
-      assignee: "E",
-      assigneeColor: "bg-teal-500",
-    },
-    {
-      title: "Build API endpoints",
-      label: "Backend",
-      labelClass: "bg-sky-100 text-sky-700",
-      priority: "Medium",
-      priorityClass: "bg-amber-100 text-amber-700",
-      due: "Oct 29",
-      assignee: "F",
-      assigneeColor: "bg-indigo-500",
-    },
-    {
-      title: "Create frontend layout",
-      label: "Frontend",
-      labelClass: "bg-emerald-100 text-emerald-700",
-      priority: "Medium",
-      priorityClass: "bg-amber-100 text-amber-700",
-      due: "Oct 27",
-      assignee: "G",
-      assigneeColor: "bg-pink-500",
-    },
-  ],
-  Review: [
-    {
-      title: "Task drag and drop",
-      label: "Frontend",
-      labelClass: "bg-emerald-100 text-emerald-700",
-      priority: "High",
-      priorityClass: "bg-pink-100 text-pink-700",
-      due: "Oct 24",
-      assignee: "H",
-      assigneeColor: "bg-orange-500",
-    },
-    {
-      title: "Workspace invitation",
-      label: "Backend",
-      labelClass: "bg-sky-100 text-sky-700",
-      priority: "Medium",
-      priorityClass: "bg-amber-100 text-amber-700",
-      due: "Oct 26",
-      assignee: "I",
-      assigneeColor: "bg-violet-500",
-    },
-  ],
-  Done: [
-    {
-      title: "Create board model",
-      label: "Backend",
-      labelClass: "bg-sky-100 text-sky-700",
-      priority: "Low",
-      priorityClass: "bg-emerald-100 text-emerald-700",
-      due: "Oct 20",
-      assignee: "J",
-      assigneeColor: "bg-fuchsia-500",
-    },
-    {
-      title: "UI components",
-      label: "Frontend",
-      labelClass: "bg-emerald-100 text-emerald-700",
-      priority: "Low",
-      priorityClass: "bg-emerald-100 text-emerald-700",
-      due: "Oct 21",
-      assignee: "K",
-      assigneeColor: "bg-cyan-500",
-    },
-    {
-      title: "Setup CI/CD",
-      label: "DevOps",
-      labelClass: "bg-amber-100 text-amber-700",
-      priority: "Medium",
-      priorityClass: "bg-amber-100 text-amber-700",
-      due: "Oct 19",
-      assignee: "L",
-      assigneeColor: "bg-emerald-500",
-    },
-  ],
-};
-
 const ProjectCard = ({ board, onOpenBoard }) => {
   const short = board?.name?.charAt(0)?.toUpperCase() || "B";
   const accentClass = accentClasses[Math.abs(board?._id?.length || 0) % accentClasses.length];
@@ -190,6 +59,32 @@ const ProjectCard = ({ board, onOpenBoard }) => {
         </div>
       </div>
 
+      <div className="mt-4">
+        <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.22em] text-slate-400">
+          Members
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex -space-x-2">
+            {(board.members || []).slice(0, 4).map((member) => (
+              <div
+                key={`${board._id}-member-${member._id}`}
+                title={member.name}
+                className="flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#112235] bg-gradient-to-br from-indigo-500 to-violet-500 text-[10px] font-bold text-white"
+              >
+                {member.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+            ))}
+          </div>
+
+          {(board.members || []).length > 4 && (
+            <span className="rounded-full border border-slate-600 bg-slate-800/60 px-2 py-1 text-[10px] font-medium text-slate-300">
+              +{(board.members || []).length - 4}
+            </span>
+          )}
+        </div>
+      </div>
+
       <div className="mt-4 flex flex-wrap gap-2">
         {(board.columns || []).map((column) => (
           <span
@@ -215,7 +110,15 @@ const ProjectCard = ({ board, onOpenBoard }) => {
 const BoardDetailView = ({ board, workspace, onBack }) => {
   const user = useSelector((state) => state.auth.user);
   const [boardTasks, setBoardTasks] = useState({});
+  const [boardMembers, setBoardMembers] = useState(board.members || []);
+  const [workspaceUsers, setWorkspaceUsers] = useState([]);
+  const [activeTab, setActiveTab] = useState("board");
   const [taskMenuOpenId, setTaskMenuOpenId] = useState(null);
+  const [taskLoading, setTaskLoading] = useState(false);
+  const [memberModalOpen, setMemberModalOpen] = useState(false);
+  const [memberSearch, setMemberSearch] = useState("");
+  const [memberAddingId, setMemberAddingId] = useState(null);
+  const [memberError, setMemberError] = useState("");
   const [taskModal, setTaskModal] = useState({
     open: false,
     mode: "create",
@@ -229,30 +132,130 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
     columnId: "",
     assignedTo: "",
   });
+  const [taskFiles, setTaskFiles] = useState([]);
   const [taskError, setTaskError] = useState("");
   const [taskSubmitting, setTaskSubmitting] = useState(false);
 
-  const getInitialBoardTasks = (currentBoard) => {
-    const nextTasks = {};
+  const normalizeTask = (task) => {
+    const priority = task.priority || "medium";
+    const normalizedPriority = priority.toLowerCase();
+    const assignedUser = task.assignedTo && typeof task.assignedTo === "object"
+      ? task.assignedTo
+      : { _id: task.assignedTo, name: "Unassigned" };
+    const assigneeName = assignedUser.name || "Unassigned";
+    const assigneeInitials = assigneeName
+      .split(" ")
+      .map((part) => part.charAt(0))
+      .slice(0, 2)
+      .join("")
+      .toUpperCase() || "U";
 
-    (currentBoard.columns || []).forEach((column) => {
-      const sampleColumnTasks = sampleTasks[column.name] || [];
+    const attachments = Array.isArray(task.attachments)
+      ? task.attachments.map((attachment) => ({
+          ...attachment,
+          url: attachment.path || attachment.url || "",
+          name: attachment.originalName || attachment.fileName || "Attachment",
+        }))
+      : [];
 
-      nextTasks[column._id] = sampleColumnTasks.map((task, index) => ({
-        ...task,
-        _id: `${currentBoard._id}-${column._id}-${index}`,
-        boardId: currentBoard._id,
-        columnId: column._id,
-      }));
-    });
+    return {
+      ...task,
+      _id: task._id,
+      boardId: board._id,
+      columnId: task.columnId?._id || task.columnId,
+      priority: normalizedPriority,
+      attachments,
+      label:
+        normalizedPriority === "high"
+          ? "High"
+          : normalizedPriority === "low"
+            ? "Low"
+            : "Medium",
+      labelClass:
+        normalizedPriority === "high"
+          ? "bg-pink-100 text-pink-700"
+          : normalizedPriority === "low"
+            ? "bg-emerald-100 text-emerald-700"
+            : "bg-amber-100 text-amber-700",
+      priorityClass:
+        normalizedPriority === "high"
+          ? "bg-pink-100 text-pink-700"
+          : normalizedPriority === "low"
+            ? "bg-emerald-100 text-emerald-700"
+            : "bg-amber-100 text-amber-700",
+      due: task.createdAt
+        ? new Date(task.createdAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+          })
+        : "Today",
+      assignee: assigneeName,
+      assigneeInitials,
+      assigneeColor: "bg-indigo-500",
+      assignedToId: assignedUser._id || null,
+      isMyTask: user?._id ? String(assignedUser._id || "") === String(user._id) : false,
+    };
+  };
 
-    return nextTasks;
+  const loadBoardTasks = async () => {
+    if (!board?._id) {
+      setBoardTasks({});
+      return;
+    }
+
+    try {
+      setTaskLoading(true);
+      const response = await api.GetTasks(board._id);
+
+      if (response.success) {
+        const nextTasks = {};
+
+        (board.columns || []).forEach((column) => {
+          nextTasks[column._id] = [];
+        });
+
+        (response.data || []).forEach((task) => {
+          const columnId = task.columnId?._id || task.columnId;
+
+          if (!nextTasks[columnId]) {
+            nextTasks[columnId] = [];
+          }
+
+          nextTasks[columnId].push(normalizeTask(task));
+        });
+
+        setBoardTasks(nextTasks);
+      }
+    } catch (error) {
+      console.log(error, "Unable to fetch board tasks.");
+      setBoardTasks({});
+    } finally {
+      setTaskLoading(false);
+    }
   };
 
   useEffect(() => {
-    setBoardTasks(getInitialBoardTasks(board));
+    setBoardMembers(board.members || []);
+    setBoardTasks({});
     setTaskMenuOpenId(null);
+    loadBoardTasks();
   }, [board]);
+
+  useEffect(() => {
+    const loadWorkspaceUsers = async () => {
+      try {
+        const response = await api.GetWorkspaceUsers();
+
+        if (response.success) {
+          setWorkspaceUsers(response.data || []);
+        }
+      } catch (error) {
+        console.log(error, "Unable to fetch workspace users.");
+      }
+    };
+
+    loadWorkspaceUsers();
+  }, []);
 
   const boardColumns = (board.columns || []).map((column) => ({
     ...column,
@@ -273,11 +276,18 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
       columnId: "",
       assignedTo: user?._id || "",
     });
+    setTaskFiles([]);
     setTaskError("");
     setTaskSubmitting(false);
   };
 
   const openCreateTaskModal = (columnId) => {
+    const preferredAssignee =
+      boardMembers.find((member) => String(member._id) === String(user?._id))?._id ||
+      boardMembers[0]?._id ||
+      user?._id ||
+      "";
+
     setTaskModal({
       open: true,
       mode: "create",
@@ -289,8 +299,9 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
       description: "",
       priority: "medium",
       columnId,
-      assignedTo: user?._id || "",
+      assignedTo: preferredAssignee,
     });
+    setTaskFiles([]);
     setTaskError("");
   };
 
@@ -308,6 +319,7 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
       columnId: task.columnId,
       assignedTo: task.assignedTo || user?._id || "",
     });
+    setTaskFiles([]);
     setTaskError("");
     setTaskMenuOpenId(null);
   };
@@ -337,6 +349,46 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
     setTaskMenuOpenId(null);
   };
 
+  const handleAddBoardMember = async (userId) => {
+    if (!board?._id || !userId) {
+      return;
+    }
+
+    try {
+      setMemberAddingId(userId);
+      setMemberError("");
+
+      const response = await api.AddBoardMember(board._id, { userId });
+
+      if (response.success) {
+        const matchedUser = workspaceUsers.find((member) => String(member._id) === String(userId));
+
+        setBoardMembers((prev) => {
+          if (prev.some((member) => String(member._id) === String(userId))) {
+            return prev;
+          }
+
+          return [
+            ...prev,
+            {
+              _id: matchedUser?._id || userId,
+              name: matchedUser?.name || "User",
+              email: matchedUser?.email || "",
+              role: "member",
+            },
+          ];
+        });
+
+        setMemberModalOpen(false);
+        setMemberSearch("");
+      }
+    } catch (error) {
+      setMemberError(error.message || "Unable to add member right now.");
+    } finally {
+      setMemberAddingId(null);
+    }
+  };
+
   const handleTaskFormChange = (event) => {
     const { name, value } = event.target;
 
@@ -344,6 +396,10 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleTaskFilesChange = (event) => {
+    setTaskFiles(Array.from(event.target.files || []));
   };
 
   const handleTaskSubmit = async (event) => {
@@ -407,41 +463,22 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
         return;
       }
 
-      const response = await api.CreateTask(board._id, {
-        title: taskForm.title.trim(),
-        description: taskForm.description.trim(),
-        columnId: taskForm.columnId,
-        priority: taskForm.priority,
-        order: (boardTasks[taskForm.columnId]?.length || 0) + 1,
-        assignedTo: taskForm.assignedTo || user?._id,
+      const formData = new FormData();
+      formData.append("title", taskForm.title.trim());
+      formData.append("description", taskForm.description.trim());
+      formData.append("columnId", taskForm.columnId);
+      formData.append("priority", taskForm.priority);
+      formData.append("order", String((boardTasks[taskForm.columnId]?.length || 0) + 1));
+      formData.append("assignedTo", taskForm.assignedTo || user?._id || "");
+
+      taskFiles.forEach((file) => {
+        formData.append("files", file);
       });
 
+      const response = await api.CreateTask(board._id, formData);
+
       if (response.success) {
-        const createdTask = {
-          ...response.data,
-          _id: response.data._id || `${board._id}-${taskForm.columnId}-${Date.now()}`,
-          title: response.data.title || taskForm.title.trim(),
-          description: response.data.description || taskForm.description.trim(),
-          priority: response.data.priority || taskForm.priority,
-          columnId: taskForm.columnId,
-          boardId: board._id,
-          label: response.data.priority === "high" ? "High" : response.data.priority === "low" ? "Low" : "Medium",
-          labelClass:
-            response.data.priority === "high"
-              ? "bg-pink-100 text-pink-700"
-              : response.data.priority === "low"
-                ? "bg-emerald-100 text-emerald-700"
-                : "bg-amber-100 text-amber-700",
-          due: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-          assignee: (user?.name || "U").charAt(0).toUpperCase(),
-          assigneeColor: "bg-indigo-500",
-        };
-
-        setBoardTasks((prev) => ({
-          ...prev,
-          [taskForm.columnId]: [...(prev[taskForm.columnId] || []), createdTask],
-        }));
-
+        await loadBoardTasks();
         closeTaskModal();
       }
     } catch (error) {
@@ -454,6 +491,12 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
   const taskMenuTask = (boardColumns.flatMap((column) => column.tasks)).find(
     (task) => task._id === taskMenuOpenId
   );
+
+  const availableWorkspaceUsers = workspaceUsers.filter(
+    (member) => !boardMembers.some((boardMember) => String(boardMember._id) === String(member._id))
+  );
+
+  const canManageMembers = String(board.createdBy) === String(user?._id);
 
   return (
     <main className="flex-1 p-4 lg:p-6">
@@ -500,6 +543,15 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
               ))}
             </div>
 
+            {canManageMembers && (
+              <button
+                type="button"
+                onClick={() => setMemberModalOpen(true)}
+                className="rounded-xl border border-slate-700/80 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-slate-700/60"
+              >
+                + Add Members
+              </button>
+            )}
             <button
               type="button"
               className="rounded-xl border border-slate-700/80 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-slate-700/60"
@@ -518,15 +570,15 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
         <div className="mb-4 flex flex-col gap-3 rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-3 shadow-[0_20px_50px_rgba(15,23,42,0.65)] xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-wrap gap-2">
             {[
-              { label: "Board", active: true },
-              { label: "Members (6)", active: false },
-              { label: "Settings", active: false },
+              { label: "Board", key: "board" },
+              { label: `Members (${boardMembers.length})`, key: "members" },
             ].map((tab) => (
               <button
-                key={tab.label}
+                key={tab.key}
                 type="button"
+                onClick={() => setActiveTab(tab.key)}
                 className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
-                  tab.active
+                  activeTab === tab.key
                     ? "border border-indigo-500/50 bg-indigo-500/10 text-indigo-300"
                     : "border border-slate-700/80 bg-slate-800/50 text-slate-300 hover:bg-slate-700/60"
                 }`}
@@ -559,111 +611,255 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
           </div>
         </div>
 
-        <div className="grid gap-4 xl:grid-cols-4">
-          {boardColumns.map((column) => (
-            <div
-              key={`${board._id}-${column._id}`}
-              className="rounded-2xl border border-slate-700/80 bg-[#cfe1ee] p-3 shadow-[0_20px_40px_rgba(15,23,42,0.25)]"
-            >
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <span className={`h-3 w-3 rounded-full ${columnDotClasses[column.name] || "bg-slate-500"}`} />
-                  <span className="text-lg font-semibold text-slate-800">{column.name}</span>
-                  <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-slate-200 px-1.5 text-xs font-semibold text-slate-700">
-                    {column.tasks.length}
-                  </span>
+        {activeTab === "members" ? (
+          <div className="rounded-2xl border border-slate-700/80 bg-[#112235] p-4 shadow-[0_20px_40px_rgba(15,23,42,0.25)]">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm uppercase tracking-[0.2em] text-indigo-300">Project members</p>
+                <h3 className="mt-1 text-2xl font-semibold text-white">Team</h3>
+              </div>
+
+              {canManageMembers && (
+                <button
+                  type="button"
+                  onClick={() => setMemberModalOpen(true)}
+                  className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:brightness-110"
+                >
+                  + Add Members
+                </button>
+              )}
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {boardMembers.length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-600 bg-slate-900/40 p-4 text-sm text-slate-300">
+                  No members added yet.
+                </div>
+              ) : (
+                boardMembers.map((member) => (
+                  <div
+                    key={`${board._id}-member-card-${member._id}`}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-900/40 p-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-bold text-white">
+                        {member.name?.charAt(0)?.toUpperCase() || 'U'}
+                      </div>
+
+                      <div>
+                        <div className="font-medium text-white">{member.name}</div>
+                        <div className="text-sm text-slate-400">{member.email}</div>
+                      </div>
+                    </div>
+
+                    <span className="rounded-full border border-slate-600 bg-slate-800/70 px-2 py-1 text-[10px] font-medium uppercase tracking-wide text-slate-200">
+                      {member.role || 'member'}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="grid gap-4 xl:grid-cols-4">
+            {boardColumns.map((column) => (
+              <div
+                key={`${board._id}-${column._id}`}
+                className="rounded-2xl border border-slate-700/80 bg-[#cfe1ee] p-3 shadow-[0_20px_40px_rgba(15,23,42,0.25)]"
+              >
+                <div className="mb-3 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`h-3 w-3 rounded-full ${columnDotClasses[column.name] || "bg-slate-500"}`} />
+                    <span className="text-lg font-semibold text-slate-800">{column.name}</span>
+                    <span className="flex h-6 min-w-6 items-center justify-center rounded-full bg-slate-200 px-1.5 text-xs font-semibold text-slate-700">
+                      {column.tasks.length}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => openCreateTaskModal(column._id)}
+                    className="text-xl font-medium text-slate-600 transition hover:text-slate-800"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {taskLoading ? (
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-100/60 p-3 text-center text-sm text-slate-600">
+                      Loading tasks...
+                    </div>
+                  ) : column.tasks.length === 0 ? (
+                    <div className="rounded-xl border border-dashed border-slate-300 bg-slate-100/60 p-3 text-center text-sm text-slate-600">
+                      No tasks yet
+                    </div>
+                  ) : column.tasks.map((task, index) => (
+                    <div
+                      key={`${column._id}-task-${task._id || index}`}
+                      className={`relative rounded-xl border p-3 shadow-sm shadow-slate-400/20 ${
+                        task.isMyTask
+                          ? "border-indigo-400 bg-indigo-50/90 shadow-indigo-200/60"
+                          : "border-slate-300 bg-[#f5f8fb]"
+                      }`}
+                    >
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTaskMenuOpenId(taskMenuOpenId === task._id ? null : task._id)
+                        }
+                        className="absolute right-2 top-2 text-lg font-bold text-slate-500 transition hover:text-slate-700"
+                      >
+                        ⋯
+                      </button>
+
+                      {taskMenuOpenId === task._id && (
+                        <div className="absolute right-2 top-9 z-30 w-32 rounded-xl border border-slate-700 bg-[#122235] p-2 shadow-lg">
+                          <button
+                            type="button"
+                            onClick={() => openViewTaskModal(task)}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-slate-200 transition hover:bg-slate-700/60"
+                          >
+                            View
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => openEditTaskModal(task)}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-slate-200 transition hover:bg-slate-700/60"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTask(task._id)}
+                            className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-red-300 transition hover:bg-slate-700/60"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+
+                      <div className="pr-6 text-base font-semibold text-slate-800">{task.title}</div>
+
+                      {task.isMyTask && (
+                        <div className="mt-2 inline-flex rounded-full border border-indigo-300 bg-indigo-100 px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-indigo-700">
+                          My task
+                        </div>
+                      )}
+
+                      <div className="mt-3 flex items-center justify-between gap-2">
+                        <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${task.labelClass || "bg-slate-100 text-slate-700"}`}>
+                          {task.label || task.priority || "Medium"}
+                        </span>
+                        <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${task.priorityClass || "bg-amber-100 text-amber-700"}`}>
+                          {task.priority || "Medium"}
+                        </span>
+                      </div>
+
+                      <div className="mt-4 flex items-center justify-between gap-3 text-[11px] text-slate-600">
+                        <div className="flex items-center gap-2">
+                          <div className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#f5f8fb] text-[10px] font-bold text-white ${task.assigneeColor || "bg-indigo-500"}`}>
+                            {task.assigneeInitials || "U"}
+                          </div>
+                          <span className="font-medium text-slate-700">
+                            {task.assignee || "Unassigned"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          <span>◫</span>
+                          <span>{task.due || "Today"}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <button
                   type="button"
                   onClick={() => openCreateTaskModal(column._id)}
-                  className="text-xl font-medium text-slate-600 transition hover:text-slate-800"
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-400 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
                 >
-                  +
+                  <span className="text-lg">+</span>
+                  Add Task
                 </button>
               </div>
+            ))}
+          </div>
+        )}
+      </div>
 
-              <div className="space-y-3">
-                {column.tasks.map((task, index) => (
-                  <div
-                    key={`${column._id}-task-${task._id || index}`}
-                    className="relative rounded-xl border border-slate-300 bg-[#f5f8fb] p-3 shadow-sm shadow-slate-400/20"
-                  >
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setTaskMenuOpenId(taskMenuOpenId === task._id ? null : task._id)
-                      }
-                      className="absolute right-2 top-2 text-lg font-bold text-slate-500 transition hover:text-slate-700"
-                    >
-                      ⋯
-                    </button>
-
-                    {taskMenuOpenId === task._id && (
-                      <div className="absolute right-2 top-9 z-30 w-32 rounded-xl border border-slate-700 bg-[#122235] p-2 shadow-lg">
-                        <button
-                          type="button"
-                          onClick={() => openViewTaskModal(task)}
-                          className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-slate-200 transition hover:bg-slate-700/60"
-                        >
-                          View
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => openEditTaskModal(task)}
-                          className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-slate-200 transition hover:bg-slate-700/60"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteTask(task._id)}
-                          className="block w-full rounded-lg px-2 py-1.5 text-left text-sm text-red-300 transition hover:bg-slate-700/60"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-
-                    <div className="pr-6 text-base font-semibold text-slate-800">{task.title}</div>
-
-                    <div className="mt-3 flex items-center justify-between gap-2">
-                      <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${task.labelClass || "bg-slate-100 text-slate-700"}`}>
-                        {task.label || task.priority || "Medium"}
-                      </span>
-                      <span className={`rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${task.priorityClass || "bg-amber-100 text-amber-700"}`}>
-                        {task.priority || "Medium"}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between text-[11px] text-slate-600">
-                      <div className="flex items-center -space-x-2">
-                        <div className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-[#f5f8fb] text-[10px] font-bold text-white ${task.assigneeColor || "bg-indigo-500"}`}>
-                          {task.assignee || (user?.name || "U").charAt(0).toUpperCase()}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-1">
-                        <span>◫</span>
-                        <span>{task.due || "Today"}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+      {memberModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4">
+          <div className="w-full max-w-xl rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-6 shadow-[0_20px_50px_rgba(15,23,42,0.65)]">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.2em] text-indigo-300">Project Members</p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">Add team members</h2>
               </div>
 
               <button
                 type="button"
-                onClick={() => openCreateTaskModal(column._id)}
-                className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-slate-400 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+                onClick={() => {
+                  setMemberModalOpen(false);
+                  setMemberError("");
+                  setMemberSearch("");
+                }}
+                className="text-2xl text-slate-400 transition hover:text-white"
               >
-                <span className="text-lg">+</span>
-                Add Task
+                ×
               </button>
             </div>
-          ))}
+
+            <div className="mb-4">
+              <input
+                type="text"
+                value={memberSearch}
+                onChange={(event) => setMemberSearch(event.target.value)}
+                placeholder="Search workspace users"
+                className="w-full rounded-xl border border-slate-600/80 bg-slate-950/30 px-3.5 py-2.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+              />
+            </div>
+
+            {memberError && <p className="mb-4 text-sm text-red-400">{memberError}</p>}
+
+            <div className="max-h-80 space-y-3 overflow-y-auto">
+              {availableWorkspaceUsers.filter((user) =>
+                `${user.name} ${user.email}`.toLowerCase().includes(memberSearch.toLowerCase())
+              ).length === 0 ? (
+                <div className="rounded-xl border border-dashed border-slate-600 bg-slate-900/40 p-4 text-center text-sm text-slate-300">
+                  No available users to add.
+                </div>
+              ) : (
+                availableWorkspaceUsers
+                  .filter((user) =>
+                    `${user.name} ${user.email}`.toLowerCase().includes(memberSearch.toLowerCase())
+                  )
+                  .map((user) => (
+                    <div
+                      key={user._id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-900/40 p-3"
+                    >
+                      <div>
+                        <div className="font-medium text-white">{user.name}</div>
+                        <div className="text-sm text-slate-400">{user.email}</div>
+                      </div>
+
+                      <button
+                        type="button"
+                        disabled={memberAddingId === user._id}
+                        onClick={() => handleAddBoardMember(user._id)}
+                        className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-3 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                      >
+                        {memberAddingId === user._id ? "Adding..." : "Add"}
+                      </button>
+                    </div>
+                  ))
+              )}
+            </div>
+          </div>
         </div>
-      </div>
+      )}
 
       {taskModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4">
@@ -716,6 +912,34 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
                       {boardColumns.find((column) => column._id === taskModal.task?.columnId)?.name || "Unknown"}
                     </p>
                   </div>
+                </div>
+
+                <div>
+                  <p className="text-sm text-slate-400">Assigned To</p>
+                  <p className="text-base text-white">
+                    {taskModal.task?.assignee || "Unassigned"}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-sm text-slate-400">Attachments</p>
+                  {taskModal.task?.attachments?.length ? (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {taskModal.task.attachments.map((attachment) => (
+                        <a
+                          key={attachment._id || attachment.fileName}
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded-lg border border-slate-600 bg-slate-800/60 px-2.5 py-1.5 text-sm text-indigo-200 transition hover:bg-slate-700/60"
+                        >
+                          {attachment.name}
+                        </a>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-base text-slate-200">No attachments added.</p>
+                  )}
                 </div>
               </div>
             ) : (
@@ -776,6 +1000,44 @@ const BoardDetailView = ({ board, workspace, onBack }) => {
                     </select>
                   </label>
                 </div>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-300">Assign To</span>
+                  <select
+                    name="assignedTo"
+                    value={taskForm.assignedTo}
+                    onChange={handleTaskFormChange}
+                    className="w-full rounded-xl border border-slate-600/80 bg-slate-950/30 px-3.5 py-2.5 text-base text-slate-100 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                  >
+                    {boardMembers.map((member) => (
+                      <option key={member._id} value={member._id}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="block">
+                  <span className="mb-2 block text-sm font-medium text-slate-300">Attachments</span>
+                  <input
+                    type="file"
+                    multiple
+                    onChange={handleTaskFilesChange}
+                    className="w-full rounded-xl border border-slate-600/80 bg-slate-950/30 px-3.5 py-2.5 text-base text-slate-100 file:mr-4 file:rounded-lg file:border-0 file:bg-indigo-500 file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-white"
+                  />
+                  {taskFiles.length > 0 && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {taskFiles.map((file) => (
+                        <span
+                          key={`${file.name}-${file.size}`}
+                          className="rounded-full border border-slate-600 bg-slate-800/60 px-2.5 py-1 text-xs text-slate-200"
+                        >
+                          {file.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </label>
 
                 {taskError && <p className="text-sm text-red-400">{taskError}</p>}
 

@@ -113,8 +113,14 @@ const handleError = (error) => {
 
 export const post = async (url, data = {}, auth = false) => {
     try {
+        const headers = getHeader(auth);
+
+        if (data instanceof FormData) {
+            headers['Content-Type'] = undefined;
+        }
+
         const res = await api.post(url, data, {
-            headers: getHeader(auth)
+            headers
         })
         return res.data;
     } catch (error) {
@@ -172,6 +178,17 @@ const CreateTask = (boardId, data) => {
     const url = endPoints.CreateTask.url.replace(':boardId', boardId)
     return post(url, data, endPoints.CreateTask.auth)
 }
+const GetTasks = (boardId) => {
+    const url = endPoints.GetTasks.url.replace(':boardId', boardId)
+    return get(url, endPoints.GetTasks.auth)
+}
+const GetWorkspaceUsers = () => {
+    return get(endPoints.GetWorkspaceUsers.url, endPoints.GetWorkspaceUsers.auth)
+}
+const AddBoardMember = (boardId, data) => {
+    const url = endPoints.AddBoardMember.url.replace(':boardId', boardId)
+    return post(url, data, endPoints.AddBoardMember.auth)
+}
 const CreateInvite = () => {
     return post(endPoints.CreateInvite.url, {}, endPoints.CreateInvite.auth)
 }
@@ -188,6 +205,9 @@ export default {
     CreateWorkspace,
     CreateBoard,
     CreateTask,
+    GetTasks,
+    GetWorkspaceUsers,
+    AddBoardMember,
     CreateInvite,
     AcceptInvite,
     Dashboard,

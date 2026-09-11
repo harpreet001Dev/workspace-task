@@ -77,3 +77,16 @@ export const acceptInvite = asyncHandler(async (req, res) => {
         },
     });
 });
+
+export const getWorkspaceUsers = asyncHandler(async (req, res) => {
+    const users = await workspaceService.getWorkspaceUsers(
+        req.user.workspaceId,
+        req.user._id
+    );
+
+    return res.status(200).json({
+        success: true,
+        message: "Workspace users fetched successfully",
+        data: users,
+    });
+});

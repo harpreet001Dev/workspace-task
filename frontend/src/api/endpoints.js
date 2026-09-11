@@ -40,6 +40,18 @@ const endPoints={
     CreateTask:{
         url:'/task/:boardId',
         auth:true
+    },
+    GetTasks:{
+        url:'/task/:boardId/get',
+        auth:true
+    },
+    GetWorkspaceUsers:{
+        url:'/workspace/users',
+        auth:true
+    },
+    AddBoardMember:{
+        url:'/board/:boardId/members',
+        auth:true
     }
 }
 

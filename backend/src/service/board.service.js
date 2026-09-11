@@ -182,7 +182,34 @@ const getUserBoards = async (userId, workspaceId) => {
     },
   ]);
 
-  return projects;
+  const boardIds = projects.map((project) => project._id);
+
+  const boardMembers = await BoardMember.find({ boardId: { $in: boardIds } })
+    .populate("userId", "_id name email")
+    .lean();
+
+  const membersByBoardId = {};
+
+  boardMembers.forEach((member) => {
+    const boardId = member.boardId.toString();
+
+    if (!membersByBoardId[boardId]) {
+      membersByBoardId[boardId] = [];
+    }
+
+    membersByBoardId[boardId].push({
+      _id: member.userId?._id || member.userId,
+      name: member.userId?.name || "Unknown",
+      email: member.userId?.email || "",
+      role: member.role || "member",
+    });
+  });
+
+  return projects.map((project) => ({
+    ...project,
+    totalMembers: membersByBoardId[project._id.toString()]?.length || 0,
+    members: membersByBoardId[project._id.toString()] || [],
+  }));
 };
 
 export default { createBoard, addBoardMember ,getUserBoards }

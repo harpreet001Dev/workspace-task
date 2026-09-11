@@ -107,8 +107,34 @@ const acceptInvite = async (token, userId) => {
     };
 };
 
+const getWorkspaceUsers = async (workspaceId, userId) => {
+    const workspaceMember = await WorkspaceMember.findOne({
+        workspaceId,
+        userId,
+    });
+
+    if (!workspaceMember) {
+        throw new ApiError(
+            403,
+            "You are not a member of this workspace"
+        );
+    }
+
+    const members = await WorkspaceMember.find({ workspaceId })
+        .populate("userId", "_id name email")
+        .lean();
+
+    return members.map((member) => ({
+        _id: member.userId?._id,
+        name: member.userId?.name,
+        email: member.userId?.email,
+        role: member.role,
+    }));
+};
+
 export default {
     createWorkspace,
     createInvite,
     acceptInvite,
+    getWorkspaceUsers,
 };

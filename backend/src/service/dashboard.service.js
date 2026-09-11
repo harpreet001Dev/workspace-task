@@ -27,6 +27,12 @@ const getDashboard = async (userId, workspaceId) => {
     (member) => member.boardId
   );
 
+  const workspaceBoards = await Board.find({
+    workspaceId,
+  }).select("_id name");
+
+  const workspaceBoardIds = workspaceBoards.map((board) => board._id);
+
   // 3. Get user's projects in this workspace
   const projects = await Board.find({
     _id: { $in: boardIds },
@@ -63,9 +69,20 @@ const getDashboard = async (userId, workspaceId) => {
   const totalTasks = await Task.countDocuments(taskFilter);
 
   const myTasks = await Task.find(taskFilter)
+    .populate("boardId", "name")
+    .populate("assignedTo", "name")
     .sort({ createdAt: -1 })
     .limit(5)
-    .select("_id title priority boardId createdAt");
+    .lean();
+
+  const allTasks = await Task.find({
+    boardId: { $in: workspaceBoardIds },
+  })
+    .populate("boardId", "name")
+    .populate("assignedTo", "name")
+    .sort({ createdAt: -1 })
+    .limit(10)
+    .lean();
 
   // 5. Workspace member count
   const totalMembers = await WorkspaceMember.countDocuments({
@@ -80,6 +97,7 @@ const getDashboard = async (userId, workspaceId) => {
     },
     projectsWithMembers,
     myTasks,
+    allTasks,
   };
 };
 

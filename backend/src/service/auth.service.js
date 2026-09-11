@@ -93,47 +93,65 @@ const login = async (data) => {
 const refresh = async (refreshToken) => {
     const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET)
 
-    // console.log(decoded, "decoded");
-
     const storedToken = await RefreshToken.findOne({
         userId: decoded.id,
         isRevoked: false
     })
+
     if (!storedToken) {
         throw new ApiError(401, "Invalid Refresh Token");
     }
+
     if (storedToken.expiresAt < new Date()) {
         throw new ApiError(401, "Refresh Token Expired!");
     }
+
     const isvalid = await bcrypt.compare(refreshToken, storedToken.token)
+
     if (!isvalid) {
         throw new ApiError(
             401,
             "Invalid refresh token"
         );
     }
+
     const user = await User.findById(decoded.id)
+
     if (!user) {
         throw new ApiError(401, "User not found!")
     }
-    storedToken.isRevoked = true
+
+    const membership = await WorkspaceMember.findOne({
+        userId: user._id,
+    });
+
+    let workspaceId = null;
+    let role = null;
+
+    if (membership) {
+        workspaceId = membership.workspaceId;
+        role = membership.role;
+    }
+
+    storedToken.isRevoked = true;
     await storedToken.save();
 
-    const accessToken = user.generateAccessToken(decoded.workspaceId,
-        decoded.role);
+    const accessToken = user.generateAccessToken(workspaceId, role);
     const newRefreshToken = user.generateRefreshToken();
 
     const hashedRefreshToken = await bcrypt.hash(newRefreshToken, 10);
+
     await RefreshToken.create({
         userId: user._id,
         token: hashedRefreshToken,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
     })
 
-
     return {
         accessToken,
-        newRefreshToken
+        newRefreshToken,
+        workspaceId,
+        role,
     }
 
 }

@@ -93,6 +93,32 @@ const Sidebar = () => {
         })}
       </nav>
 
+      {!isCollapsed && (
+        <div className="mt-4 space-y-3">
+          <button
+            type="button"
+            onClick={() => navigate("/my-tasks")}
+            className={`flex w-full items-center justify-between rounded-xl border border-slate-700/80 bg-slate-800/60 px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition hover:bg-slate-700/60 ${
+              location.pathname === "/my-tasks" ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-200" : ""
+            }`}
+          >
+            <span>My Tasks</span>
+            <span>→</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate("/all-tasks")}
+            className={`flex w-full items-center justify-between rounded-xl border border-slate-700/80 bg-slate-800/60 px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition hover:bg-slate-700/60 ${
+              location.pathname === "/all-tasks" ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-200" : ""
+            }`}
+          >
+            <span>All Tasks</span>
+            <span>→</span>
+          </button>
+        </div>
+      )}
+
       <div className="mt-auto space-y-3 pt-4">
         {!isCollapsed ? (
           <button className="flex w-full items-center justify-between rounded-xl border border-slate-700/80 bg-slate-800/60 px-3 py-3 text-sm text-slate-200">

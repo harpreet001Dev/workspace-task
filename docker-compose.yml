@@ -14,6 +14,7 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
+      - ./backend/uploads:/app/uploads
 
   mongodb:
     image: mongo:7
