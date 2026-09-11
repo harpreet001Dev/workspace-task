@@ -128,6 +128,18 @@ export const post = async (url, data = {}, auth = false) => {
     }
 }
 
+export const patch = async (url, data = {}, auth = false) => {
+    try {
+        const res = await api.patch(url, data, {
+            headers: getHeader(auth)
+        });
+
+        return res.data;
+    } catch (error) {
+        handleError(error);
+    }
+};
+
 export const get = async (url, auth = false, params = {}) => {
     try {
         const res = await api.get(url, {
@@ -196,7 +208,15 @@ const AcceptInvite = (token) => {
     const url = endPoints.AcceptInvite.url.replace(':token', token)
     return post(url, {}, endPoints.AcceptInvite.auth)
 }
+const MoveTask = (taskId, data) => {
+    const url = endPoints.MoveTask.url.replace(':taskId', taskId);
 
+    return patch(
+        url,
+        data,
+        endPoints.MoveTask.auth
+    );
+};
 
 export default {
     Login,
@@ -212,4 +232,5 @@ export default {
     AcceptInvite,
     Dashboard,
     Board,
+    MoveTask,
 }

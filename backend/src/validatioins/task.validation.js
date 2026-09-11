@@ -34,3 +34,13 @@ export const createTaskSchema = joi.object({
     })
     .required(),
 });
+
+export const moveTaskSchema = joi.object({
+  columnId: joi.string()
+    .required(),
+
+  order: joi.number()
+    .integer()
+    .min(1)
+    .required(),
+});

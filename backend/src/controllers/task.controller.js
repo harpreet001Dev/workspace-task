@@ -58,3 +58,19 @@ export const getAllTasks = asyncHandler(async (req, res) => {
   });
 });
 
+export const moveTask = asyncHandler(async (req, res) => {
+  const { taskId } = req.params;
+  const { columnId, order } = req.body;
+
+  const task = await taskService.moveTask(
+    taskId,
+    columnId,
+    order
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Task moved successfully",
+    data: task,
+  });
+});

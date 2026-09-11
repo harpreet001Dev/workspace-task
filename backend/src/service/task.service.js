@@ -121,9 +121,62 @@ const getAllTasks = async (boardId) => {
   }));
 };
 
+const moveTask = async (taskId, columnId, order) => {
+  const task = await Task.findById(taskId);
+
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
+
+  const targetColumn = await Column.findOne({
+    _id: columnId,
+    boardId: task.boardId,
+  });
+
+  if (!targetColumn) {
+    throw new ApiError(400, "Column does not belong to this board");
+  }
+
+  const sourceColumnId = task.columnId;
+
+  // Remove task from its current position
+  await Task.updateMany(
+    {
+      boardId: task.boardId,
+      columnId: sourceColumnId,
+      order: { $gt: task.order },
+    },
+    {
+      $inc: { order: -1 },
+    }
+  );
+
+  // Make space in destination column
+  await Task.updateMany(
+    {
+      boardId: task.boardId,
+      columnId: columnId,
+      order: { $gte: order },
+      _id: { $ne: taskId },
+    },
+    {
+      $inc: { order: 1 },
+    }
+  );
+
+  // Move the task
+  task.columnId = columnId;
+  task.order = order;
+
+  await task.save();
+
+  return task;
+};
+
 export default {
   createTask,
   uploadTaskAttachments,
   getTaskAttachments,
   getAllTasks,
+  moveTask,
 };

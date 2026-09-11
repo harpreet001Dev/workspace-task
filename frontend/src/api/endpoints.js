@@ -52,6 +52,10 @@ const endPoints={
     AddBoardMember:{
         url:'/board/:boardId/members',
         auth:true
+    },
+    MoveTask:{
+        url:'/task/:taskId/move',
+        auth:true
     }
 }
 
