@@ -119,21 +119,33 @@ const Projects = () => {
 
   const getBoards = async () => {
     try {
-       setLoading(true);
+      setLoading(true);
       const res = await api.Board(limit, cursor);
       if (res.success) {
-        setBoards((prevBoards) => [
-          ...prevBoards,
-          ...(res.data.boards || []),
-        ]);
+        const newBoards = res.data.boards || [];
+        setBoards((prevBoards) => {
+          const updatedBoards = [...prevBoards, ...newBoards];
+
+          localStorage.setItem(
+            "boardsData",
+            JSON.stringify(updatedBoards)
+          );
+
+          return updatedBoards;
+        });
         setCursor(res.data.nextCursor);
         setHasMore(res.data.hasMore);
       }
     } catch (error) {
       console.log(error, "error");
-    }finally {
-    setLoading(false);
-  }
+      const cachedBoards = localStorage.getItem("boardsData");
+
+      if (cachedBoards) {
+        setBoards(JSON.parse(cachedBoards));
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCreateBoard = async (event) => {
