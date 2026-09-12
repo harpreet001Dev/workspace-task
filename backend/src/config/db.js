@@ -11,6 +11,16 @@ const connectDB = async () => {
     try {
       await mongoose.connect(mongoUri);
       console.log("MongoDB connected");
+
+      // Auto-initiate replica set rs0 if not already initialized (required for transactions)
+      try {
+        const admin = mongoose.connection.db.admin();
+        await admin.command({ replSetInitiate: {} });
+        console.log("Replica set rs0 initialized");
+      } catch {
+        // Silently ignore if already initialized or standalone
+      }
+
       return;
     } catch (error) {
       console.error(

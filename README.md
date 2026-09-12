@@ -111,6 +111,10 @@ users working on the same board.
   the page.
 - This keeps the board state synchronized across multiple users.
 
+# Development Note
+
+- The React UI styling was developed with assistance from Chat AI.
+
 ## Architecture diagram
 
 All services run as separate Docker containers, orchestrated via Docker Compose.
@@ -338,11 +342,12 @@ You do **not** need to install MongoDB or Redis separately on your machine.
 git clone <your-repo-url>
 cd <your-repo-folder>
 
-# Create the backend environment file
+# Create the environment files
 cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 
-# Fill in the required environment variables
-# Edit backend/.env with your configuration
+# Fill in the required environment variables (defaults work out-of-the-box)
+# Edit backend/.env and frontend/.env if customizing ports or secrets
 
 # Build and start all services
 docker compose up --build
@@ -371,22 +376,31 @@ docker-compose up --build
 ```
 
 This spins up:
-- `frontend` — React app served via Nginx
-- `api` — Express REST API + Socket.io server
+- `frontend` — React + Vite SPA (port 5173)
+- `api` — Express REST API + Socket.io server (port 5000)
 - `worker` — BullMQ background job processor
-- `redis` — cache and job queue
-- `mongo` — primary database
+- `redis` — Cache and job queue (port 6379)
+- `mongo` — Primary database with replica set (port 27017)
+- `mongo-express` — Web-based MongoDB management GUI (port 8081)
 
 ## Environment variables
 
-```bash
-PORT=
-NODE_ENV=
-MONGO_URI=
-ACCESS_TOKEN_SECRET=
-REFRESH_TOKEN_SECRET=
-FRONTEND_URL=
-```
+### Backend (`backend/.env`)
+
+| Variable | Description | Default / Example |
+|---|---|---|
+| `PORT` | Port for the Express server | `5000` |
+| `NODE_ENV` | Environment mode (`development` / `production`) | `development` |
+| `MONGO_URI` | MongoDB connection URI with replica set | `mongodb://mongodb:27017/workspace` |
+| `ACCESS_TOKEN_SECRET` | Secret key for signing short-lived JWT access tokens | `your_super_secret_access_token_key_here` |
+| `REFRESH_TOKEN_SECRET` | Secret key for signing long-lived JWT refresh tokens | `your_super_secret_refresh_token_key_here` |
+| `FRONTEND_URL` | Frontend origin for CORS and cookie handling | `http://localhost:5173` |
+
+### Frontend (`frontend/.env`)
+
+| Variable | Description | Default / Example |
+|---|---|---|
+| `VITE_BACKEND_URI` | Backend API base URL accessed by the client browser | `http://localhost:5000` |
 
 ## API documentation
 
@@ -405,21 +419,30 @@ docker compose exec api npm test
 
 ## Project structure
 
+```text
 .
 ├── .github/
-│   └── workflows/          # GitHub Actions CI/CD pipelines
+│   └── workflows/          # GitHub Actions CI/CD pipelines (backend & frontend)
 ├── backend/
-│   ├── src/                # Route handlers, models, middleware, services
-│   ├── tests/              # Test suites
+│   ├── src/                # Route handlers, models, middleware, services, docs
+│   ├── tests/              # Test suites (Jest + Supertest)
 │   ├── coverage/           # Test coverage reports
 │   ├── uploads/            # Local file upload storage
-│   ├── app.js               # Express app setup
-│   ├── index.js              # Server entry point
-│   ├── Dockerfile
-│   ├── nodemon.json
-│   ├── package.json
-│   └── .env.example
-├── frontend/                # React + Vite app
-├── docker-compose.yml       # Orchestrates all containers
-├── ER_DIAGRAM.md
+│   ├── app.js              # Express app setup & middleware
+│   ├── index.js            # Server entry point & Socket.io server
+│   ├── Dockerfile          # Backend container definition
+│   ├── nodemon.json        # Nodemon configuration
+│   ├── package.json        # Backend dependencies & scripts
+│   └── .env.example        # Backend sample environment variables
+├── frontend/
+│   ├── src/                # React components, pages, hooks, sockets, API
+│   ├── public/             # Static assets
+│   ├── Dockerfile          # Frontend container definition (Vite dev)
+│   ├── eslint.config.js    # ESLint configuration
+│   ├── vite.config.js      # Vite configuration
+│   ├── package.json        # Frontend dependencies & scripts
+│   └── .env.example        # Frontend sample environment variables
+├── docker-compose.yml      # Orchestrates all containers
+├── ER_DIAGRAM.md           # Entity Relationship diagram documentation
 └── README.md
+```
