@@ -306,18 +306,19 @@ const ProjectBoard = () => {
         setTaskMenuOpenId(null);
     };
 
-    const handleDeleteTask = (taskId) => {
-        setBoardTasks((prev) => {
-            const next = { ...prev };
+    const handleDeleteTask = async (taskId) => {
+        try {
+            const response = await api.DeleteTask(taskId);
 
-            Object.keys(next).forEach((columnId) => {
-                next[columnId] = (next[columnId] || []).filter((task) => task._id !== taskId);
-            });
-
-            return next;
-        });
-
-        setTaskMenuOpenId(null);
+            if (response.success) {
+                toast.success("Task deleted successfully.");
+                await loadBoardTasks();
+            }
+        } catch (error) {
+            toast.error(error.message || "Unable to delete task right now.");
+        } finally {
+            setTaskMenuOpenId(null);
+        }
     };
 
     const handleAddBoardMember = async (userId) => {
@@ -393,56 +394,19 @@ const ProjectBoard = () => {
             setTaskError("");
 
             if (taskModal.mode === "edit" && taskModal.task) {
-                setBoardTasks((prev) => {
-                    const next = { ...prev };
-
-                    next[taskModal.task.columnId] = (next[taskModal.task.columnId] || []).map((task) =>
-                        task._id === taskModal.task._id
-                            ? {
-                                ...task,
-                                title: taskForm.title.trim(),
-                                description: taskForm.description.trim(),
-                                priority: taskForm.priority,
-                                columnId: taskForm.columnId,
-                                assignedTo: taskForm.assignedTo,
-                                label:
-                                    taskForm.priority === "high"
-                                        ? "High"
-                                        : taskForm.priority === "low"
-                                            ? "Low"
-                                            : "Medium",
-                            }
-                            : task
-                    );
-
-                    if (taskForm.columnId !== taskModal.task.columnId) {
-                        const currentTasks = (next[taskModal.task.columnId] || []).filter(
-                            (task) => task._id !== taskModal.task._id
-                        );
-                        next[taskModal.task.columnId] = currentTasks;
-
-                        const movedTask = {
-                            ...taskModal.task,
-                            title: taskForm.title.trim(),
-                            description: taskForm.description.trim(),
-                            priority: taskForm.priority,
-                            columnId: taskForm.columnId,
-                            assignedTo: taskForm.assignedTo,
-                            label:
-                                taskForm.priority === "high"
-                                    ? "High"
-                                    : taskForm.priority === "low"
-                                        ? "Low"
-                                        : "Medium",
-                        };
-
-                        next[taskForm.columnId] = [...(next[taskForm.columnId] || []), movedTask];
-                    }
-
-                    return next;
+                const response = await api.UpdateTask(taskModal.task._id, {
+                    title: taskForm.title.trim(),
+                    description: taskForm.description.trim(),
+                    priority: taskForm.priority,
+                    assignedTo: taskForm.assignedTo?._id || null,
                 });
 
-                closeTaskModal();
+                if (response.success) {
+                    await loadBoardTasks();
+                    closeTaskModal();
+                    toast.success("Task updated successfully.");
+                }
+
                 return;
             }
 

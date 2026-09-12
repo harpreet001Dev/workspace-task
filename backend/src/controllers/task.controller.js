@@ -91,6 +91,18 @@ export const updateTask = asyncHandler(async (req, res) => {
   });
 });
 
+export const deleteTask = asyncHandler(async (req, res) => {
+  const { taskId } = req.params;
+
+  const task = await taskService.deleteTask(taskId, req.user);
+
+  return res.status(200).json({
+    success: true,
+    message: "Task deleted successfully",
+    data: task,
+  });
+});
+
 export const moveTask = asyncHandler(async (req, res) => {
     const { taskId } = req.params;
     const { columnId, order } = req.body;

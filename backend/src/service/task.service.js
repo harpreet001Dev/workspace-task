@@ -188,6 +188,49 @@ const updateTask = async (taskId, userId, workspaceId, data) => {
   };
 };
 
+const deleteTask = async (taskId, user) => {
+  const task = await Task.findById(taskId);
+
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
+
+  const board = await Board.findById(task.boardId).lean();
+
+  if (!board) {
+    throw new ApiError(404, "Board not found");
+  }
+
+  if (!user.workspaceId) {
+    throw new ApiError(403, "You are not a member of this workspace");
+  }
+
+  if (board.workspaceId.toString() !== user.workspaceId.toString()) {
+    throw new ApiError(403, "Task does not belong to your workspace");
+  }
+
+  const isWorkspaceOwner = user.role === "owner";
+  const isBoardCreator = board.createdBy.toString() === user._id.toString();
+  const isTaskCreator = task.createdBy.toString() === user._id.toString();
+
+  if (!isWorkspaceOwner && !isBoardCreator && !isTaskCreator) {
+    throw new ApiError(
+      403,
+      "Only the workspace owner, project owner, or task creator can delete this task"
+    );
+  }
+
+  await Promise.all([
+    Attachment.deleteMany({ taskId }),
+    Task.findByIdAndDelete(taskId),
+  ]);
+
+  return {
+    task,
+    board,
+  };
+};
+
 const moveTask = async (taskId, columnId, order) => {
   const task = await Task.findById(taskId);
 
@@ -290,5 +333,6 @@ export default {
   getTaskAttachments,
   getAllTasks,
   updateTask,
+  deleteTask,
   moveTask,
 };

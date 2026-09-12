@@ -209,6 +209,14 @@ const CreateTask = (boardId, data) => {
     const url = endPoints.CreateTask.url.replace(':boardId', boardId)
     return post(url, data, endPoints.CreateTask.auth)
 }
+const UpdateTask = (taskId, data) => {
+    const url = endPoints.UpdateTask.url.replace(':taskId', taskId)
+    return patch(url, data, endPoints.UpdateTask.auth)
+}
+const DeleteTask = (taskId) => {
+    const url = endPoints.DeleteTask.url.replace(':taskId', taskId)
+    return del(url, endPoints.DeleteTask.auth)
+}
 const GetTasks = (boardId) => {
     const url = endPoints.GetTasks.url.replace(':boardId', boardId)
     return get(url, endPoints.GetTasks.auth)
@@ -244,6 +252,8 @@ export default {
     CreateWorkspace,
     CreateBoard,
     CreateTask,
+    UpdateTask,
+    DeleteTask,
     GetTasks,
     GetWorkspaceUsers,
     AddBoardMember,

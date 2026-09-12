@@ -12,6 +12,10 @@ const SortableTask = ({
     onEdit,
     onDelete,
 }) => {
+    const stopDragPropagation = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+    };
     const {
         attributes,
         listeners,
@@ -39,7 +43,10 @@ const SortableTask = ({
         >
             <button
                 type="button"
+                onPointerDown={stopDragPropagation}
+                onMouseDown={stopDragPropagation}
                 onClick={(event) => {
+                    event.preventDefault();
                     event.stopPropagation();
                     onToggleMenu(task._id);
                 }}
@@ -52,7 +59,10 @@ const SortableTask = ({
                 <div className="absolute right-2 top-9 z-30 w-36 rounded-xl border border-slate-700 bg-[#122235] p-2 shadow-lg">
                     <button
                         type="button"
+                        onPointerDown={stopDragPropagation}
+                        onMouseDown={stopDragPropagation}
                         onClick={(event) => {
+                            event.preventDefault();
                             event.stopPropagation();
                             onView(task);
                         }}
@@ -62,7 +72,10 @@ const SortableTask = ({
                     </button>
                     <button
                         type="button"
+                        onPointerDown={stopDragPropagation}
+                        onMouseDown={stopDragPropagation}
                         onClick={(event) => {
+                            event.preventDefault();
                             event.stopPropagation();
                             onEdit(task);
                         }}
@@ -72,7 +85,10 @@ const SortableTask = ({
                     </button>
                     <button
                         type="button"
+                        onPointerDown={stopDragPropagation}
+                        onMouseDown={stopDragPropagation}
                         onClick={(event) => {
+                            event.preventDefault();
                             event.stopPropagation();
                             onDelete(task._id);
                         }}

@@ -61,6 +61,14 @@ const endPoints={
         url:'/task/:boardId/get',
         auth:true
     },
+    UpdateTask:{
+        url:'/task/:taskId',
+        auth:true
+    },
+    DeleteTask:{
+        url:'/task/:taskId',
+        auth:true
+    },
     GetWorkspaceUsers:{
         url:'/workspace/users',
         auth:true

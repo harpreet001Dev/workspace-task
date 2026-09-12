@@ -10,6 +10,7 @@ import {
   uploadTaskAttachments,
   getTaskAttachments,
   updateTask,
+  deleteTask,
   moveTask,
 } from "../controllers/task.controller.js";
 import {
@@ -57,6 +58,13 @@ router.patch(
   authorizeRole("owner", "member"),
   validate(updateTaskSchema),
   updateTask
+);
+
+router.delete(
+  "/:taskId",
+  authtenticateUser,
+  authorizeRole("owner", "member"),
+  deleteTask
 );
 
 router.patch(
