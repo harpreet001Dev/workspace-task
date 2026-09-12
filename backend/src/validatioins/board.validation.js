@@ -32,3 +32,16 @@ export const addBoardMemberSchema = joi.object({
     })
     .required(),
 });
+
+export const getBoardsQuerySchema = joi.object({
+  limit: joi.number()
+    .integer()
+    .min(1)
+    .max(50)
+    .default(10),
+
+  cursor: joi.string()
+    .trim()
+    .allow(null, "")
+    .optional(),
+});

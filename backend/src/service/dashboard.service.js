@@ -3,9 +3,12 @@ import ApiError from "../utlis/apiError.js";
 import Board from '../models/Board.js'
 import BoardMember from '../models/BoardMember.js'
 import Task from '../models/Task.js'
+import redisConnection from "../config/redis.js";
 
 const getDashboard = async (userId, workspaceId) => {
-//   checking workspace member 
+
+
+  //   checking workspace member 
   const workspaceMember = await WorkspaceMember.findOne({
     userId,
     workspaceId,
@@ -18,7 +21,14 @@ const getDashboard = async (userId, workspaceId) => {
     );
   }
 
-  
+  const cacheKey = `dashboard:${userId}:${workspaceId}`;
+  const cachedDashboard = await redisConnection.get(cacheKey);
+  if (cachedDashboard) {
+     console.log("DASHBOARD CACHE HIT - fetching from Redis");
+    return JSON.parse(cachedDashboard);
+  }
+
+ console.log("DASHBOARD CACHE MISS - fetching from MongoDB");
   const boardMemberships = await BoardMember.find({
     userId,
   }).select("boardId");
@@ -43,17 +53,17 @@ const getDashboard = async (userId, workspaceId) => {
     .select("_id name createdAt");
 
   const projectsWithMembers = await Promise.all(
-  projects.map(async (project) => {
-    const totalMembers = await BoardMember.countDocuments({
-      boardId: project._id,
-    });
+    projects.map(async (project) => {
+      const totalMembers = await BoardMember.countDocuments({
+        boardId: project._id,
+      });
 
-    return {
-      ...project.toObject(),
-      totalMembers,
-    };
-  })
-);
+      return {
+        ...project.toObject(),
+        totalMembers,
+      };
+    })
+  );
 
   const totalProjects = await Board.countDocuments({
     _id: { $in: boardIds },
@@ -89,7 +99,7 @@ const getDashboard = async (userId, workspaceId) => {
     workspaceId,
   });
 
-  return {
+  const dashboardData = {
     stats: {
       totalProjects,
       myTasks: totalTasks,
@@ -99,8 +109,17 @@ const getDashboard = async (userId, workspaceId) => {
     myTasks,
     allTasks,
   };
+  console.log("Saving dashboard to Redis cache");
+  await redisConnection.set(
+    cacheKey,
+    JSON.stringify(dashboardData),
+    "EX",
+    300  // 5min
+  );
+   console.log("Dashboard cached for 5 minutes");
+  return dashboardData;
 };
 
 export default {
-    getDashboard,
+  getDashboard,
 }

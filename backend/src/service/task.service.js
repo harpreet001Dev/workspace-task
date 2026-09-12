@@ -3,6 +3,8 @@ import Board from "../models/Board.js";
 import Column from "../models/Column.js";
 import Attachment from "../models/Attachment.js";
 import ApiError from "../utlis/apiError.js";
+import WorkspaceMember from "../models/WorkspaceMember.js";
+import redisConnection from "../config/redis.js";
 
 const createTaskAttachments = async (taskId, uploadedBy, files = []) => {
   if (!files || files.length === 0) {
@@ -60,6 +62,16 @@ const createTask = async (boardId, createdBy, data, files = []) => {
 
   const attachments = await createTaskAttachments(task._id, createdBy, files);
 
+  // Invalidating  dashboard caches for all workspace members
+  const workspaceMembers = await WorkspaceMember.find({
+    workspaceId: board.workspaceId,
+  }).select("userId");
+
+  for (const member of workspaceMembers) {
+    await redisConnection.del(
+      `dashboard:${member.userId}:${board.workspaceId}`
+    );
+  }
   return {
     ...task.toObject(),
     workspaceId: board.workspaceId,

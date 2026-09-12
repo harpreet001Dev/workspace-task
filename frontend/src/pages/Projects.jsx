@@ -1,7 +1,7 @@
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import api from "../api/api";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const accentClasses = [
   "bg-gradient-to-br from-indigo-500 to-violet-500",
@@ -106,6 +106,12 @@ const Projects = () => {
   const workspace = useSelector((state) => state.auth.workspace);
   const navigate = useNavigate();
   const [boards, setBoards] = useState([]);
+  const [cursor, setCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const limit = 6;
+  const loadMoreRef = useRef(null);
+
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [projectName, setProjectName] = useState("");
   const [creatingProject, setCreatingProject] = useState(false);
@@ -113,13 +119,21 @@ const Projects = () => {
 
   const getBoards = async () => {
     try {
-      const res = await api.Board();
+       setLoading(true);
+      const res = await api.Board(limit, cursor);
       if (res.success) {
-        setBoards(res?.data || []);
+        setBoards((prevBoards) => [
+          ...prevBoards,
+          ...(res.data.boards || []),
+        ]);
+        setCursor(res.data.nextCursor);
+        setHasMore(res.data.hasMore);
       }
     } catch (error) {
       console.log(error, "error");
-    }
+    }finally {
+    setLoading(false);
+  }
   };
 
   const handleCreateBoard = async (event) => {
@@ -161,7 +175,19 @@ const Projects = () => {
   useEffect(() => {
     getBoards();
   }, []);
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore && !loading) {
+        getBoards();
+      }
+    });
 
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [cursor, hasMore, loading]);
   return (
     <main className="flex-1 p-4 lg:p-6">
       <div className="mx-auto max-w-[1400px]">
@@ -230,15 +256,18 @@ const Projects = () => {
             No boards found for this workspace yet.
           </div>
         ) : (
-          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {boards.map((board) => (
-              <ProjectCard
-                key={board._id}
-                board={board}
-                onOpenBoard={() => navigate(`/projects/${board._id}`)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {boards.map((board) => (
+                <ProjectCard
+                  key={board._id}
+                  board={board}
+                  onOpenBoard={() => navigate(`/projects/${board._id}`)}
+                />
+              ))}
+            </div>
+            <div ref={loadMoreRef} className="h-10" />
+          </>
         )}
       </div>
 

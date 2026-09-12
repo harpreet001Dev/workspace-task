@@ -176,8 +176,12 @@ const Logout = () => {
 const Dashboard = (data) => {
     return get(endPoints.Dashboard.url, endPoints.Dashboard.auth)
 }
-const Board = (data) => {
-    return get(endPoints.Board.url, endPoints.Board.auth)
+const Board = (limit, cursor = null) => {
+    return get(endPoints.Board.url, endPoints.Board.auth,
+        {
+            limit,
+            cursor,
+        })
 }
 const CreateWorkspace = (data) => {
     return post(endPoints.CreateWorkspace.url, data, endPoints.CreateWorkspace.auth)
