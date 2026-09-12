@@ -96,6 +96,9 @@ All services run as separate Docker containers, orchestrated via Docker Compose.
                     └─────────────────────────┘
 
 
+## ER diagram
+
+
 ```mermaid
 flowchart TB
   subgraph Compose["Docker Compose network"]
