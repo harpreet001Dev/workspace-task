@@ -37,8 +37,13 @@ jobs:
         run: npm audit --audit-level=high
 
       - name: Start Docker Compose
+        env:
+          MONGO_URI: ${{ secrets.MONGO_URI }}
+          PORT: ${{ secrets.PORT }}
+          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
+          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
         run: docker compose up -d
-        
+
       - name: Run tests
         working-directory: backend
         run: npm test
