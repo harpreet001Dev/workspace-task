@@ -11,6 +11,7 @@ import {
     arrayMove,
 } from "@dnd-kit/sortable";
 import socket from "../sockets/socket";
+import toast from "react-hot-toast";
 
 
 const accentClasses = [
@@ -29,6 +30,7 @@ const ProjectBoard = () => {
     const { boardId } = useParams();
 
     const [activeTask, setActiveTask] = useState(null);
+    const [notification, setNotification] = useState("");
 
     const [board, setBoard] = useState(null);
     const [boardTasks, setBoardTasks] = useState({});
@@ -184,15 +186,34 @@ const ProjectBoard = () => {
     }, [boardId]);
 
     useEffect(() => {
-    if (!boardId) {
-        return;
-    }
+        if (!boardId) {
+            return;
+        }
 
-    socket.emit("board:join", { boardId });
-    return () => {
-        socket.emit("board:leave", { boardId });
-    };
-}, [boardId]);
+        socket.emit("board:join", { boardId });
+        return () => {
+            socket.emit("board:leave", { boardId });
+        };
+    }, [boardId]);
+
+    useEffect(() => {
+        const handleTaskMoved = ({ task, boardId: payloadBoardId, message }) => {
+            const incomingBoardId = task?.boardId || payloadBoardId;
+
+            if (String(incomingBoardId) !== String(boardId)) {
+                return;
+            }
+
+            toast.success(message || `Task "${task?.title || "Task"}" was updated.`);
+            loadBoardTasks();
+        };
+
+        socket.on("task:moved", handleTaskMoved);
+
+        return () => {
+            socket.off("task:moved", handleTaskMoved);
+        };
+    }, [boardId, board]);
 
     useEffect(() => {
         if (board) {
@@ -541,10 +562,12 @@ const ProjectBoard = () => {
             console.log("Reordered tasks:", reorderedTasks);
 
             try {
-                await api.MoveTask(active.id, {
+                const res = await api.MoveTask(active.id, {
                     columnId: activeColumn._id,
                     order: newIndex + 1,
                 });
+                console.log(res, "res in task move");
+
 
                 setBoardTasks((prev) => ({
                     ...prev,
@@ -795,16 +818,16 @@ const ProjectBoard = () => {
                         <div className="grid gap-4 xl:grid-cols-4">
                             {boardColumns.map((column) => (
                                 <BoardColumn
-    key={`${board._id}-${column._id}`}
-    column={column}
-    taskLoading={taskLoading}
-    taskMenuOpenId={taskMenuOpenId}
-    setTaskMenuOpenId={setTaskMenuOpenId}
-    openCreateTaskModal={openCreateTaskModal}
-    openViewTaskModal={openViewTaskModal}
-    openEditTaskModal={openEditTaskModal}
-    handleDeleteTask={handleDeleteTask}
-/>
+                                    key={`${board._id}-${column._id}`}
+                                    column={column}
+                                    taskLoading={taskLoading}
+                                    taskMenuOpenId={taskMenuOpenId}
+                                    setTaskMenuOpenId={setTaskMenuOpenId}
+                                    openCreateTaskModal={openCreateTaskModal}
+                                    openViewTaskModal={openViewTaskModal}
+                                    openEditTaskModal={openEditTaskModal}
+                                    handleDeleteTask={handleDeleteTask}
+                                />
                             ))}
                         </div>
                     )}

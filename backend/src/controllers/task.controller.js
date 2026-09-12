@@ -59,18 +59,28 @@ export const getAllTasks = asyncHandler(async (req, res) => {
 });
 
 export const moveTask = asyncHandler(async (req, res) => {
-  const { taskId } = req.params;
-  const { columnId, order } = req.body;
+    const { taskId } = req.params;
+    const { columnId, order } = req.body;
 
-  const task = await taskService.moveTask(
-    taskId,
-    columnId,
-    order
-  );
+    const { task, sourceColumn, targetColumn } =
+        await taskService.moveTask(
+            taskId,
+            columnId,
+            order
+        );
 
-  return res.status(200).json({
-    success: true,
-    message: "Task moved successfully",
-    data: task,
-  });
+    const io = req.app.get("io");
+    const boardRoomId = task.boardId?.toString?.() || task.boardId;
+
+    io.emit("task:moved", {
+        task,
+        boardId: boardRoomId,
+        message: `Task "${task.title}" was moved from "${sourceColumn.name}" to "${targetColumn.name}".`,
+    });
+
+    return res.status(200).json({
+        success: true,
+        message: "Task moved successfully",
+        data: task,
+    });
 });

@@ -138,39 +138,79 @@ const moveTask = async (taskId, columnId, order) => {
   }
 
   const sourceColumnId = task.columnId;
+  const sourceColumn = await Column.findById(sourceColumnId);
 
-  // Remove task from its current position
-  await Task.updateMany(
-    {
-      boardId: task.boardId,
-      columnId: sourceColumnId,
-      order: { $gt: task.order },
-    },
-    {
-      $inc: { order: -1 },
-    }
+  if (!sourceColumn) {
+    throw new ApiError(404, "Source column not found");
+  }
+
+  const normalizedOrder = Math.max(1, Number(order) || 1);
+
+  const sourceTasks = await Task.find({
+    boardId: task.boardId,
+    columnId: sourceColumnId,
+  })
+    .sort({ order: 1, createdAt: 1 })
+    .lean();
+
+  const sourceIndex = sourceTasks.findIndex(
+    (item) => item._id.toString() === taskId.toString()
   );
 
-  // Make space in destination column
-  await Task.updateMany(
-    {
-      boardId: task.boardId,
-      columnId: columnId,
-      order: { $gte: order },
-      _id: { $ne: taskId },
-    },
-    {
-      $inc: { order: 1 },
-    }
-  );
+  if (sourceIndex === -1) {
+    throw new ApiError(404, "Task not found in source column");
+  }
 
-  // Move the task
+  const movingTask = sourceTasks[sourceIndex];
+  sourceTasks.splice(sourceIndex, 1);
+
+  const updateColumnTasks = async (tasks, columnIdValue) => {
+    for (let index = 0; index < tasks.length; index += 1) {
+      await Task.findByIdAndUpdate(tasks[index]._id, {
+        $set: {
+          order: index + 1,
+          columnId: columnIdValue,
+        },
+      });
+    }
+  };
+
+  if (sourceColumnId.toString() === columnId.toString()) {
+    const insertIndex = Math.min(
+      Math.max(0, normalizedOrder - 1),
+      sourceTasks.length
+    );
+
+    sourceTasks.splice(insertIndex, 0, movingTask);
+    await updateColumnTasks(sourceTasks, sourceColumnId);
+  } else {
+    const targetTasks = await Task.find({
+      boardId: task.boardId,
+      columnId,
+    })
+      .sort({ order: 1, createdAt: 1 })
+      .lean();
+
+    const insertIndex = Math.min(
+      Math.max(0, normalizedOrder - 1),
+      targetTasks.length
+    );
+
+    targetTasks.splice(insertIndex, 0, movingTask);
+
+    await updateColumnTasks(sourceTasks, sourceColumnId);
+    await updateColumnTasks(targetTasks, columnId);
+  }
+
   task.columnId = columnId;
-  task.order = order;
-
+  task.order = normalizedOrder;
   await task.save();
 
-  return task;
+  return {
+    task,
+    sourceColumn,
+    targetColumn,
+  };
 };
 
 export default {
