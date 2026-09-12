@@ -52,7 +52,7 @@ jobs:
 
       - name: Run tests
         working-directory: backend
-        run: npm test
+        run: docker compose exec -T api npm test
 
       - name: Check Backend Health
         run: curl --fail http://localhost:${{ secrets.PORT }}/health
