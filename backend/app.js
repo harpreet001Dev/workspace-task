@@ -29,6 +29,10 @@ app.get("/", (req, res) => {
   res.json({ message: "Backend is working" });
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "ok", message: "Backend is healthy" });
+});
+
 // Swagger UI documentation
 app.use("/api/docs", docsRouter);
 app.get("/docs", (req, res) => res.redirect("/api/docs"));

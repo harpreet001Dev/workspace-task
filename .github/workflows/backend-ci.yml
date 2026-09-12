@@ -42,10 +42,12 @@ jobs:
 
       - name: Create backend env
         run: |
-          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> backend/.env
-          echo "PORT=${{ secrets.PORT }}" >> backend/.env
-          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> backend/.env
-          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> backend/.env
+          echo "NODE_ENV=test" >> backend/.env
+          echo "PORT=${{ secrets.PORT || '5000' }}" >> backend/.env
+          echo "MONGO_URI=${{ secrets.MONGO_URI || 'mongodb://mongodb:27017/workspace' }}" >> backend/.env
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET || 'ci_access_token_secret_32chars_long!!' }}" >> backend/.env
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET || 'ci_refresh_token_secret_32chars_long!!' }}" >> backend/.env
+          echo "FRONTEND_URL=http://localhost:5173" >> backend/.env
 
       - name: Start Docker Compose
         run: docker compose up -d
@@ -56,13 +58,19 @@ jobs:
       - name: Show API logs
         run: docker compose logs api --tail=100
 
+      - name: Check Backend Health
+        run: |
+          PORT="${{ secrets.PORT || '5000' }}"
+          curl --fail --retry 10 --retry-connrefused --retry-delay 2 --max-time 10 http://localhost:${PORT}/health || {
+            echo "Health check failed! Showing container logs:"
+            docker compose logs api --tail=50
+            docker compose logs mongodb --tail=50
+            exit 1
+          }
 
       - name: Run tests
         working-directory: backend
         run: docker compose exec -T api npm test -- --forceExit
-
-      - name: Check Backend Health
-        run: curl --fail http://localhost:${{ secrets.PORT }}/health
 
       - name: Stop Docker Compose
         if: always()

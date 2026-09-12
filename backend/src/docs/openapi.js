@@ -63,6 +63,28 @@ Authorization: Bearer <your_access_token>
     },
   ],
   paths: {
+    "/health": {
+      get: {
+        summary: "Service health check",
+        description: "Returns 200 OK if the backend server is running and healthy.",
+        responses: {
+          200: {
+            description: "Backend is healthy",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    status: { type: "string", example: "ok" },
+                    message: { type: "string", example: "Backend is healthy" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
     ...authPaths,
     ...workspacePaths,
     ...boardPaths,

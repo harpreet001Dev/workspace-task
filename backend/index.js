@@ -16,7 +16,7 @@ async function startServer() {
         const io=initializeSocket(httpServer);
         app.set("io", io);
 
-        httpServer.listen(PORT, () => {
+        httpServer.listen(PORT, "0.0.0.0", () => {
             console.log(`Backend is running on port ${PORT}`);
         });
     } catch (error) {
