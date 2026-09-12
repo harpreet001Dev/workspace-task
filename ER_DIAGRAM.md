@@ -46,25 +46,25 @@ flowchart TB
 
 ```mermaid
 erDiagram
-  USER ||--o{ REFRESH_TOKEN : owns
-  USER ||--o{ WORKSPACE : owns
-  USER ||--o{ WORKSPACE_MEMBER : has
-  WORKSPACE ||--o{ WORKSPACE_MEMBER : contains
-  WORKSPACE ||--o{ WORKSPACE_INVITE : has
-  USER ||--o{ WORKSPACE_INVITE : sends
-  WORKSPACE ||--o{ BOARD : contains
-  USER ||--o{ BOARD : creates
-  BOARD ||--o{ BOARD_MEMBER : has
-  USER ||--o{ BOARD_MEMBER : has
-  BOARD ||--o{ COLUMN : contains
-  BOARD ||--o{ TASK : contains
-  COLUMN ||--o{ TASK : contains
-  USER ||--o{ TASK : creates
-  USER ||--o{ TASK : assigned_to
-  TASK ||--o{ ATTACHMENT : has
-  USER ||--o{ ATTACHMENT : uploads
-  WORKSPACE ||--o{ AUDIT_LOG : logs
-  USER ||--o{ AUDIT_LOG : performs
+  USER ||--o{ REFRESH_TOKEN : "owns"
+  USER ||--o{ WORKSPACE : "owns"
+  USER ||--o{ WORKSPACE_MEMBER : "has"
+  WORKSPACE ||--o{ WORKSPACE_MEMBER : "contains"
+  WORKSPACE ||--o{ WORKSPACE_INVITE : "has"
+  USER ||--o{ WORKSPACE_INVITE : "sends"
+  WORKSPACE ||--o{ BOARD : "contains"
+  USER ||--o{ BOARD : "creates"
+  BOARD ||--o{ BOARD_MEMBER : "has"
+  USER ||--o{ BOARD_MEMBER : "has"
+  BOARD ||--o{ COLUMN : "contains"
+  BOARD ||--o{ TASK : "contains"
+  COLUMN ||--o{ TASK : "contains"
+  USER ||--o{ TASK : "creates"
+  USER ||--o{ TASK : "assigned_to"
+  TASK ||--o{ ATTACHMENT : "has"
+  USER ||--o{ ATTACHMENT : "uploads"
+  WORKSPACE ||--o{ AUDIT_LOG : "logs"
+  USER ||--o{ AUDIT_LOG : "performs"
 
   USER {
     ObjectId _id PK
