@@ -14,13 +14,10 @@ import { dashboardPaths } from "./paths/dashboard.paths.js";
 export const openapiSpecification = {
   openapi: "3.0.3",
   info: {
-    title: "Workspace & Project Management API",
+    title: "Workspace APIs",
     version: "1.0.0",
     description: `
-### Overview
-Welcome to the **Workspace & Project Management REST API** documentation.
-This API powers a collaborative project management workspace with real-time updates via Socket.IO, background audit logging via BullMQ, and Redis caching.
-
+    
 ### Authentication
 Most endpoints require a JWT Bearer Token in the \`Authorization\` header:
 \`\`\`http
