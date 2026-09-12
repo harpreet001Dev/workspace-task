@@ -1,5 +1,6 @@
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import api from "../api/api";
 import { useState, useEffect, useRef } from "react";
 
@@ -12,7 +13,7 @@ const accentClasses = [
   "bg-gradient-to-br from-fuchsia-500 to-purple-500",
 ];
 
-const ProjectCard = ({ board, onOpenBoard, onUpdateBoard, canUpdateBoard }) => {
+const ProjectCard = ({ board, onOpenBoard, onUpdateBoard, onDeleteBoard, canUpdateBoard, canDeleteBoard }) => {
   const short = board?.name?.charAt(0)?.toUpperCase() || "B";
   const accentClass = accentClasses[Math.abs(board?._id?.length || 0) % accentClasses.length];
   const [menuOpen, setMenuOpen] = useState(false);
@@ -48,18 +49,33 @@ const ProjectCard = ({ board, onOpenBoard, onUpdateBoard, canUpdateBoard }) => {
             ⋮
           </button>
 
-          {menuOpen && canUpdateBoard && (
+          {menuOpen && (canUpdateBoard || canDeleteBoard) && (
             <div className="absolute right-0 top-10 z-20 min-w-[160px] rounded-xl border border-slate-700/80 bg-[#0f1d2d] p-2 shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onUpdateBoard(board);
-                }}
-                className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-slate-800/70"
-              >
-                Update board
-              </button>
+              {canUpdateBoard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onUpdateBoard(board);
+                  }}
+                  className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-slate-800/70"
+                >
+                  Update board
+                </button>
+              )}
+
+              {canDeleteBoard && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onDeleteBoard(board);
+                  }}
+                  className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-rose-500/10"
+                >
+                  Delete board
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -237,6 +253,7 @@ const Projects = () => {
         setProjectName("");
         setEditingBoardId(null);
         setShowUpdateModal(false);
+        toast.success("Board updated successfully.");
         await getBoards();
         return;
       }
@@ -246,6 +263,22 @@ const Projects = () => {
       setCreateError(error.message || "Unable to update project.");
     } finally {
       setUpdatingBoard(false);
+    }
+  };
+
+  const handleDeleteBoard = async (board) => {
+    try {
+      const response = await api.DeleteBoard(board._id);
+
+      if (response.success) {
+        setBoards((prevBoards) => prevBoards.filter((item) => item._id !== board._id));
+        toast.success("Board deleted successfully.");
+        return;
+      }
+
+      toast.error(response.message || "Unable to delete project.");
+    } catch (error) {
+      toast.error(error.message || "Unable to delete project.");
     }
   };
 
@@ -341,7 +374,9 @@ const Projects = () => {
                   board={board}
                   onOpenBoard={() => navigate(`/projects/${board._id}`)}
                   onUpdateBoard={handleUpdateBoard}
+                  onDeleteBoard={handleDeleteBoard}
                   canUpdateBoard={true}
+                  canDeleteBoard={workspace?.role === "owner" || String(board.createdBy) === String(user?._id)}
                 />
               ))}
             </div>

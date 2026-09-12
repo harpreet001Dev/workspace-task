@@ -194,6 +194,10 @@ const UpdateBoard = (boardId, data) => {
     const url = endPoints.UpdateBoard.url.replace(':boardId', boardId)
     return patch(url, data, endPoints.UpdateBoard.auth)
 }
+const DeleteBoard = (boardId) => {
+    const url = endPoints.DeleteBoard.url.replace(':boardId', boardId)
+    return del(url, endPoints.DeleteBoard.auth)
+}
 const CreateWorkspace = (data) => {
     return post(endPoints.CreateWorkspace.url, data, endPoints.CreateWorkspace.auth)
 }
@@ -250,5 +254,6 @@ export default {
     Board,
     GetBoard,
     UpdateBoard,
+    DeleteBoard,
     MoveTask,
 }
