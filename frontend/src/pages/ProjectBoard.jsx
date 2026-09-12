@@ -127,14 +127,12 @@ const ProjectBoard = () => {
     const loadBoard = async () => {
         try {
             setLoadingBoard(true);
-            const response = await api.Board();
+            const response = await api.GetBoard(boardId);
 
             if (response.success) {
-                const selectedBoard = (response.data || []).find(
-                    (item) => String(item._id) === String(boardId)
-                );
-
-                setBoard(selectedBoard || null);
+                setBoard(response.data || null);
+            } else {
+                setBoard(null);
             }
         } catch (error) {
             console.log(error, "Unable to load board details.");

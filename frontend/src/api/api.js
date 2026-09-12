@@ -183,6 +183,10 @@ const Board = (limit, cursor = null) => {
             cursor,
         })
 }
+const GetBoard = (boardId) => {
+    const url = endPoints.GetBoard.url.replace(':boardId', boardId)
+    return get(url, endPoints.GetBoard.auth)
+}
 const CreateWorkspace = (data) => {
     return post(endPoints.CreateWorkspace.url, data, endPoints.CreateWorkspace.auth)
 }
@@ -236,5 +240,6 @@ export default {
     AcceptInvite,
     Dashboard,
     Board,
+    GetBoard,
     MoveTask,
 }

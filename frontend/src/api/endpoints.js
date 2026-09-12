@@ -33,6 +33,10 @@ const endPoints={
         url:'/board',
         auth:true
     },
+    GetBoard:{
+        url:'/board/:boardId',
+        auth:true
+    },
     CreateBoard:{
         url:'/board/:workspaceId',
         auth:true

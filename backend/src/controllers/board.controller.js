@@ -63,3 +63,16 @@ export const getBoards = asyncHandler(async (req, res) => {
     data: board,
   });
 })
+
+export const getBoard = asyncHandler(async (req, res) => {
+  const board = await boardService.getBoardDetails(
+    req.params.boardId,
+    req.user._id,
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "Board data fetched successfully",
+    data: board,
+  });
+})

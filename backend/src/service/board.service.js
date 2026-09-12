@@ -361,4 +361,43 @@ const getUserBoards = async (userId, workspaceId, query) => {
   };
 };
 
-export default { createBoard, addBoardMember, getUserBoards }
+const getBoardDetails = async (boardId, userId) => {
+  const board = await Board.findById(boardId).lean();
+
+  if (!board) {
+    throw new ApiError(404, "Board not found");
+  }
+
+  const isMember = await BoardMember.findOne({
+    boardId,
+    userId,
+  }).lean();
+
+  if (!isMember) {
+    throw new ApiError(403, "You are not a member of this board");
+  }
+
+  const [columns, boardMembers] = await Promise.all([
+    Column.find({ boardId }).sort({ order: 1 }).lean(),
+    BoardMember.find({ boardId })
+      .populate("userId", "_id name email")
+      .lean(),
+  ]);
+
+  const members = boardMembers.map((member) => ({
+    _id: member.userId?._id || member.userId,
+    name: member.userId?.name || "Unknown",
+    email: member.userId?.email || "",
+    role: member.role || "member",
+  }));
+
+  return {
+    ...board,
+    members,
+    columns,
+    totalMembers: members.length,
+    totalColumns: columns.length,
+  };
+};
+
+export default { createBoard, addBoardMember, getUserBoards, getBoardDetails }
