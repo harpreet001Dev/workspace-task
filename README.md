@@ -96,17 +96,15 @@ All services run as separate Docker containers, orchestrated via Docker Compose.
                     └─────────────────────────┘
 
 
-## ER diagram
-
-
 ```mermaid
 flowchart TB
+
   subgraph Compose["Docker Compose network"]
-    Frontend["Frontend<br/>React + Nginx"]
-    API["Backend API<br/>Express + Socket.io"]
-    Worker["Worker<br/>BullMQ processor"]
-    Redis["Redis<br/>Cache + job queue"]
-    Mongo["MongoDB<br/>Primary database"]
+    Frontend["Frontend - React + Vite"]
+    API["Backend API - Express + Socket.io"]
+    Worker["Worker - BullMQ processor"]
+    Redis["Redis - Cache + job queue"]
+    Mongo["MongoDB - Primary database"]
   end
 
   Frontend --> API
@@ -114,7 +112,6 @@ flowchart TB
   API --> Mongo
   Worker --> Redis
   Worker --> Mongo
-```
 
 ## ER diagram
 
