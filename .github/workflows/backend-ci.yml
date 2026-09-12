@@ -62,6 +62,10 @@ jobs:
 
       - name: Start Docker Compose
         run: docker compose up -d
+
+      - name: Initialize MongoDB Replica Set
+        run: |
+          docker compose exec -T mongodb mongosh --eval "try { rs.initiate() } catch (e) { print(e) }" || true
       
       - name: Check Docker containers
         run: docker compose ps
