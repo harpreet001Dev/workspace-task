@@ -12,7 +12,6 @@ import redisConnection from "../config/redis.js";
 
 const createBoard = async (workspaceId, createdBy, data) => {
   const { name } = data;
-
   const workspace = await Workspace.findById(workspaceId);
 
   if (!workspace) {
@@ -41,7 +40,8 @@ const createBoard = async (workspaceId, createdBy, data) => {
   ];
 
   await Column.insertMany(defaultColumns);
-
+  
+  //process through worker
   await auditLogQueue.add("create-audit-log", {
     action: "BOARD_CREATED",
     userId: createdBy,
@@ -58,11 +58,9 @@ const createBoard = async (workspaceId, createdBy, data) => {
 
 const addBoardMember = async (boardId, requestingUserId, userId) => {
   const board = await Board.findById(boardId);
-
   if (!board) {
     throw new ApiError(404, "Board not found");
   }
-
   if (board.createdBy.toString() !== requestingUserId.toString()) {
     throw new ApiError(
       403,
@@ -92,7 +90,7 @@ const addBoardMember = async (boardId, requestingUserId, userId) => {
     );
   }
 
-  // Add board member
+  // adding Board member
   const boardMember = await BoardMember.create({
     boardId,
     userId,
@@ -113,8 +111,7 @@ const getUserBoards = async (userId, workspaceId, query) => {
       Buffer.from(cursor, "base64").toString("utf-8")
     );
   }
-
-  // 1. Verify user belongs to workspace
+  //checking users blongs to workspace
   const workspaceMember = await WorkspaceMember.findOne({
     userId,
     workspaceId,
@@ -127,7 +124,6 @@ const getUserBoards = async (userId, workspaceId, query) => {
     );
   }
 
-  // 2. Build aggregation pipeline
   const pipeline = [
   {
     $match: {
@@ -136,7 +132,6 @@ const getUserBoards = async (userId, workspaceId, query) => {
   },
 ];
 
-  // 3. Apply cursor
   if (cursorData) {
     pipeline.push({
       $match: {
@@ -159,7 +154,7 @@ const getUserBoards = async (userId, workspaceId, query) => {
     });
   }
 
-  // 4. Get board members
+  // /gettign board members 
   pipeline.push({
     $lookup: {
       from: "boardmembers",
@@ -169,7 +164,7 @@ const getUserBoards = async (userId, workspaceId, query) => {
     },
   });
 
-  // 5. Get board columns
+  //getting columns for board
   pipeline.push({
     $lookup: {
       from: "columns",
@@ -179,7 +174,7 @@ const getUserBoards = async (userId, workspaceId, query) => {
     },
   });
 
-  // 6. Return required data
+//shaping data
   pipeline.push({
     $project: {
       _id: 1,
@@ -211,7 +206,7 @@ const getUserBoards = async (userId, workspaceId, query) => {
     },
   });
 
-  // 7. Sort newest → oldest
+ // sorting newest to oldest
   pipeline.push({
     $sort: {
       createdAt: -1,
@@ -219,7 +214,6 @@ const getUserBoards = async (userId, workspaceId, query) => {
     },
   });
 
-  // 8. Get requested number of boards
   pipeline.push({
     $limit: pageSize,
   });
@@ -263,7 +257,7 @@ const getUserBoards = async (userId, workspaceId, query) => {
     totalColumns: board.columns?.length || 0,
   }));
 
-  // 9. Create next cursor
+
   let nextCursor = null;
 
   if (enrichedBoards.length > 0) {
@@ -277,7 +271,7 @@ const getUserBoards = async (userId, workspaceId, query) => {
     ).toString("base64");
   }
 
-  // 10. Check if more boards may exist
+  //checking more boards exists or not
   const hasMore = enrichedBoards.length === pageSize;
 
   return {

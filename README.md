@@ -21,6 +21,82 @@ attachments, real-time updates, and role-based access control.
 - Background jobs via BullMQ, caching via Redis
 - Swagger-documented REST API
 
+## Application Flow
+
+1. **Register**
+   - A new user creates an account.
+
+2. **Login**
+   - The user logs in and receives access and refresh tokens.
+
+3. **Workspace membership**
+   - If the user already belongs to a workspace, they can access the workspace dashboard.
+   - If the user does not belong to a workspace, they can create a new workspace.
+   - The user who creates a workspace automatically becomes its **owner**.
+
+4. **Workspace → Board → Column → Task**
+   - Workspace owners and members can work with boards according to their permissions.
+   - Boards contain columns, and columns contain tasks.
+   - Tasks can be assigned to workspace members.
+
+5. **Real-time collaboration**
+   - Changes are propagated to connected users through Socket.io.
+
+
+## Authorization & RBAC
+
+The application uses JWT authentication combined with workspace-level and
+board-level authorization.
+
+### Board permissions
+
+| Action | Who can perform it |
+|---|---|
+| Update board | Any member of the board |
+| Delete board | Workspace owner or board creator |
+
+The board creator is automatically added as a board member when the board
+is created. Other users must be explicitly added as board members.
+
+### Task permissions
+
+| Action | Who can perform it |
+|---|---|
+| Update task | Any member of the workspace containing the task's board |
+| Delete task | Workspace owner, board creator, or task creator |
+
+### Board update
+
+A user must be an active member of the board to update it.
+
+### Board deletion
+
+Only the following users can delete a board:
+
+- Workspace owner
+- Board creator
+
+Regular board members cannot delete a board.
+
+Deleting a board also removes its associated columns, tasks, and attachments.
+
+### Task update
+
+Any active member of the workspace containing the task's board can update:
+
+- Task title
+- Description
+- Priority
+- Assignee
+
+### Task deletion
+
+Task deletion is restricted to:
+
+- Workspace owner
+- Board creator
+- Task creator
+
 ## Architecture diagram
 
 All services run as separate Docker containers, orchestrated via Docker Compose.
