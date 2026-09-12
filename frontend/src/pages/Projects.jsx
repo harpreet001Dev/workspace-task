@@ -12,7 +12,7 @@ const accentClasses = [
   "bg-gradient-to-br from-fuchsia-500 to-purple-500",
 ];
 
-const ProjectCard = ({ board, onOpenBoard, onUpdateBoard, onDeleteBoard }) => {
+const ProjectCard = ({ board, onOpenBoard, onUpdateBoard }) => {
   const short = board?.name?.charAt(0)?.toUpperCase() || "B";
   const accentClass = accentClasses[Math.abs(board?._id?.length || 0) % accentClasses.length];
   const [menuOpen, setMenuOpen] = useState(false);
@@ -59,16 +59,6 @@ const ProjectCard = ({ board, onOpenBoard, onUpdateBoard, onDeleteBoard }) => {
                 className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-slate-800/70"
               >
                 Update board
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMenuOpen(false);
-                  onDeleteBoard(board);
-                }}
-                className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-rose-500/10"
-              >
-                Delete board
               </button>
             </div>
           )}
@@ -259,21 +249,6 @@ const Projects = () => {
     }
   };
 
-  const handleDeleteBoard = async (board) => {
-    try {
-      const response = await api.DeleteBoard(board._id);
-
-      if (response.success) {
-        setBoards((prevBoards) => prevBoards.filter((item) => item._id !== board._id));
-        return;
-      }
-
-      setCreateError(response.message || "Unable to delete project.");
-    } catch (error) {
-      setCreateError(error.message || "Unable to delete project.");
-    }
-  };
-
   useEffect(() => {
     getBoards();
   }, []);
@@ -366,7 +341,6 @@ const Projects = () => {
                   board={board}
                   onOpenBoard={() => navigate(`/projects/${board._id}`)}
                   onUpdateBoard={handleUpdateBoard}
-                  onDeleteBoard={handleDeleteBoard}
                 />
               ))}
             </div>

@@ -9,6 +9,14 @@ export const createBoardSchema = joi.object({
         .required(),
 });
 
+export const updateBoardSchema = joi.object({
+    name: joi.string()
+        .trim()
+        .min(2)
+        .max(100)
+        .required(),
+});
+
 export const createColumnSchema = joi.object({
   name: joi.string()
     .valid("To Do", "In Progress", "Done")

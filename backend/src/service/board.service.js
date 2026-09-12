@@ -461,8 +461,14 @@ const updateBoard = async (boardId, userId, data) => {
     throw new ApiError(404, "Board not found");
   }
 
-  if (board.createdBy.toString() !== userId.toString()) {
-    throw new ApiError(403, "Only the board creator can update this board");
+  const workspace = await Workspace.findById(board.workspaceId);
+
+  if (!workspace) {
+    throw new ApiError(404, "Workspace not found");
+  }
+
+  if (workspace.ownerId.toString() !== userId.toString()) {
+    throw new ApiError(403, "Only the workspace owner can update this board");
   }
 
   const { name } = data;
@@ -480,25 +486,4 @@ const updateBoard = async (boardId, userId, data) => {
   return updatedBoard;
 };
 
-const deleteBoard = async (boardId, userId) => {
-  const board = await Board.findById(boardId);
-
-  if (!board) {
-    throw new ApiError(404, "Board not found");
-  }
-
-  if (board.createdBy.toString() !== userId.toString()) {
-    throw new ApiError(403, "Only the board creator can delete this board");
-  }
-
-  await Promise.all([
-    BoardMember.deleteMany({ boardId }),
-    Column.deleteMany({ boardId }),
-    Task.deleteMany({ boardId }),
-    Board.findByIdAndDelete(boardId),
-  ]);
-
-  return board;
-};
-
-export default { createBoard, addBoardMember, getUserBoards, getBoardDetails, updateBoard, deleteBoard }
+export default { createBoard, addBoardMember, getUserBoards, getBoardDetails, updateBoard }
