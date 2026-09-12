@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 
-
+//redis conenctiom
 const redisConnection = new Redis({
   host: 'redis',
   port: 6379,
