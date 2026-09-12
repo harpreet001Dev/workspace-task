@@ -224,27 +224,51 @@ erDiagram
 
 ### Prerequisites
 
-- Node.js (v18+)
-- MongoDB
-- Redis
-- Docker & Docker Compose (optional, for containerized setup)
+Before running the project, make sure you have the following installed:
 
-### Local setup
+* **Docker Desktop** — required to run the application containers.
+* **Git** — required to clone the repository.
+
+The project uses Docker Compose to run the required services, including:
+
+* Frontend
+* Backend API
+* MongoDB
+* Redis
+* Background worker
+* Mongo Express
+
+You do **not** need to install MongoDB or Redis separately on your machine.
+
+## Local Setup
 
 ```bash
-# clone the repo
+# Clone the repository
 git clone <your-repo-url>
 cd <your-repo-folder>
 
-# install dependencies
-npm install
+# Create the backend environment file
+cp backend/.env.example backend/.env
 
-# copy env file and fill in values
-cp .env.example .env
+# Fill in the required environment variables
+# Edit backend/.env with your configuration
 
-# run the dev server
-npm run dev
+# Build and start all services
+docker compose up --build
 ```
+
+The application will be available at:
+
+* Frontend: `http://localhost:5173`
+* Backend API: `http://localhost:5000`
+* Mongo Express: `http://localhost:8081`
+
+To stop the application:
+
+```bash
+docker compose down
+```
+
 
 ### Docker setup
 
@@ -264,34 +288,47 @@ This spins up:
 
 ## Environment variables
 
-<!-- List your actual required env vars here -->
-```
+```bash
+PORT=
+NODE_ENV=
 MONGO_URI=
-REDIS_URL=
 ACCESS_TOKEN_SECRET=
 REFRESH_TOKEN_SECRET=
-PORT=
+FRONTEND_URL=
 ```
 
 ## API documentation
 
-Swagger UI is available at `/api-docs` once the server is running.
-
-## Testing
+Once the server is running locally, interactive Swagger UI and the raw OpenAPI spec are available at:
 
 ```bash
-npm run test
+http://localhost:5000/api/docs — interactive Swagger UI
+http://localhost:5000/api/docs/swagger.json — raw OpenAPI spec (JSON)
+```
+
+## Testing
+Run the backend test suite inside the Docker container:
+```bash
+docker compose exec api npm test
 ```
 
 ## Project structure
 
-<!-- Adjust to match your actual folder layout -->
-```
-src/
-  models/       # Mongoose schemas
-  routes/       # Express routes
-  controllers/  # Route handlers
-  middleware/   # Auth, RBAC, error handling
-  services/     # Business logic, BullMQ jobs
-  sockets/      # Socket.io handlers
-```
+.
+├── .github/
+│   └── workflows/          # GitHub Actions CI/CD pipelines
+├── backend/
+│   ├── src/                # Route handlers, models, middleware, services
+│   ├── tests/              # Test suites
+│   ├── coverage/           # Test coverage reports
+│   ├── uploads/            # Local file upload storage
+│   ├── app.js               # Express app setup
+│   ├── index.js              # Server entry point
+│   ├── Dockerfile
+│   ├── nodemon.json
+│   ├── package.json
+│   └── .env.example
+├── frontend/                # React + Vite app
+├── docker-compose.yml       # Orchestrates all containers
+├── ER_DIAGRAM.md
+└── README.md
