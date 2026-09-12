@@ -160,36 +160,102 @@ const Projects = () => {
   const [updatingBoard, setUpdatingBoard] = useState(false);
   const [createError, setCreateError] = useState("");
 
-  const getBoards = async () => {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+
+// Debounce search
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedSearch(search.trim());
+  }, 400);
+
+
+  return () => clearTimeout(timer);
+}, [search]);
+
+
+// Handle search
+useEffect(() => {
+  const searchBoards = async () => {
+    // If search is empty, load normal boards again
+   if (!debouncedSearch) {
+  setCursor(null);
+  setHasMore(true);
+  setBoards([]);
+  getBoards();
+  return;
+}
+
     try {
       setLoading(true);
-      const res = await api.Board(limit, cursor);
+
+      const res = await api.SearchBoards(debouncedSearch);
+
       if (res.success) {
-        const newBoards = res.data.boards || [];
-        setBoards((prevBoards) => {
-          const updatedBoards = [...prevBoards, ...newBoards];
+        // Search result replaces the existing boards
+        setBoards(res.data || []);
 
-          localStorage.setItem(
-            "boardsData",
-            JSON.stringify(updatedBoards)
-          );
-
-          return updatedBoards;
-        });
-        setCursor(res.data.nextCursor);
-        setHasMore(res.data.hasMore);
+        // IMPORTANT:
+        // Disable normal pagination while searching
+        setHasMore(false);
       }
     } catch (error) {
-      console.log(error, "error");
-      const cachedBoards = localStorage.getItem("boardsData");
-
-      if (cachedBoards) {
-        setBoards(JSON.parse(cachedBoards));
-      }
+      console.log(error, "search error");
+      setBoards([]);
     } finally {
       setLoading(false);
     }
   };
+
+  searchBoards();
+}, [debouncedSearch]);
+
+
+
+ 
+const getBoards = async () => {
+  // Don't fetch normal boards while searching
+  if (debouncedSearch) {
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const res = await api.Board(limit, cursor);
+
+    if (res.success) {
+      const newBoards = res.data.boards || [];
+
+      setBoards((prevBoards) => {
+        const updatedBoards = [...prevBoards, ...newBoards];
+
+        localStorage.setItem(
+          "boardsData",
+          JSON.stringify(updatedBoards)
+        );
+
+        return updatedBoards;
+      });
+
+      setCursor(res.data.nextCursor);
+      setHasMore(res.data.hasMore);
+    }
+  } catch (error) {
+    console.log(error, "error");
+
+    const cachedBoards = localStorage.getItem("boardsData");
+
+    if (cachedBoards) {
+      setBoards(JSON.parse(cachedBoards));
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   const handleCreateBoard = async (event) => {
     event.preventDefault();
@@ -285,11 +351,17 @@ const Projects = () => {
   useEffect(() => {
     getBoards();
   }, []);
+
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting && hasMore && !loading) {
-        getBoards();
-      }
+     if (
+  entries[0].isIntersecting &&
+  hasMore &&
+  !loading &&
+  !debouncedSearch
+) {
+  getBoards();
+}
     });
 
     if (loadMoreRef.current) {
@@ -297,20 +369,12 @@ const Projects = () => {
     }
 
     return () => observer.disconnect();
-  }, [cursor, hasMore, loading]);
+  }, [cursor, hasMore, loading, debouncedSearch]);
   return (
     <main className="flex-1 p-4 lg:p-6">
       <div className="mx-auto max-w-[1400px]">
         <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.65)] lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3 rounded-xl border border-slate-700/70 bg-slate-800/50 px-3 py-2.5 text-slate-300">
-            <span className="text-lg">⌕</span>
-            <input
-              type="text"
-              placeholder="Search projects, tasks, pages..."
-              className="w-full bg-transparent text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none lg:w-[380px]"
-            />
-          </div>
-
+   
           <div className="flex items-center gap-3 self-end lg:self-auto">
             <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-800/60 text-slate-200">
               🔔
@@ -347,6 +411,8 @@ const Projects = () => {
             <span className="text-lg">⌕</span>
             <input
               type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
               placeholder="Search projects..."
               className="w-full bg-transparent text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none"
             />

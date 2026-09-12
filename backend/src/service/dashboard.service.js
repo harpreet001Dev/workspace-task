@@ -5,6 +5,8 @@ import BoardMember from '../models/BoardMember.js'
 import Task from '../models/Task.js'
 import redisConnection from "../config/redis.js";
 import { AuditLog } from "../models/Audit.js";
+import User from "../models/User.js";
+
 
 const buildAuditMessage = (activity) => {
   const userName = activity.userId?.name || "Someone";
@@ -227,7 +229,32 @@ const getDashboard = async (userId, workspaceId) => {
   return dashboardData;
 };
 
+
+export const getProfile = async (userId) => {
+  const user = await User.findById(userId).select("name email");
+
+  if (!user) {
+    throw new Error("User not found");
+  }
+
+  const totalProjects = await Board.countDocuments({
+    createdBy: userId,
+  });
+
+  const totalTasks = await Task.countDocuments({
+    createdBy: userId,
+  });
+
+  return {
+    name: user.name,
+    email: user.email,
+    totalProjects,
+    totalTasks,
+  };
+};
+
 export default {
   getDashboard,
   getRecentActivities,
+  getProfile,
 }

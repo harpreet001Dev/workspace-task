@@ -235,6 +235,7 @@ const AcceptInvite = (token) => {
     const url = endPoints.AcceptInvite.url.replace(':token', token)
     return post(url, {}, endPoints.AcceptInvite.auth)
 }
+
 const MoveTask = (taskId, data) => {
     const url = endPoints.MoveTask.url.replace(':taskId', taskId);
 
@@ -244,6 +245,21 @@ const MoveTask = (taskId, data) => {
         endPoints.MoveTask.auth
     );
 };
+
+
+const SearchBoards = (search) => {
+    return get(
+        endPoints.SearchBoard.url,
+        endPoints.SearchBoard.auth,
+        {
+            q: search,
+        }
+    )
+}
+
+const GetProfile = () => {
+    return get(endPoints.Profile.url, endPoints.Profile.auth)
+}
 
 export default {
     Login,
@@ -266,4 +282,6 @@ export default {
     UpdateBoard,
     DeleteBoard,
     MoveTask,
+    SearchBoards,
+    GetProfile
 }

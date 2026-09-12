@@ -128,7 +128,13 @@ const getUserBoards = async (userId, workspaceId, query) => {
   }
 
   // 2. Build aggregation pipeline
-  const pipeline = [];
+  const pipeline = [
+  {
+    $match: {
+      workspaceId: new mongoose.Types.ObjectId(workspaceId),
+    },
+  },
+];
 
   // 3. Apply cursor
   if (cursorData) {
@@ -384,11 +390,36 @@ const deleteBoard = async (boardId, userId) => {
   return board;
 };
 
+export const searchBoards = async (userId, workspaceId, search) => {
+  const workspaceMember = await WorkspaceMember.findOne({
+    userId,
+    workspaceId,
+  });
+
+  if (!workspaceMember) {
+    throw new ApiError("You are not a member of this workspace", 403);
+  }
+
+  const boards = await Board.find({
+    workspaceId,
+    name: {
+      $regex: search,
+      $options: "i",
+    },
+  })
+    .sort({ createdAt: -1 })
+    .limit(20)
+    .lean();
+
+  return boards;
+};
+
 export default {
   createBoard,
   addBoardMember,
   getUserBoards,
   getBoardDetails,
   updateBoard,
-  deleteBoard
+  deleteBoard,
+  searchBoards
 }

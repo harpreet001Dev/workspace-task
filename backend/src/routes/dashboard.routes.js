@@ -1,6 +1,6 @@
 import express from "express";
 import authtenticateUser from "../middleware/auth.middleware.js";
-import { getDashboard, getRecentActivities } from "../controllers/dashboard.controller.js";
+import { getDashboard, getRecentActivities,getProfile } from "../controllers/dashboard.controller.js";
 
 
 const router = express.Router();
@@ -17,4 +17,9 @@ router.get(
   getRecentActivities,
 );
 
+router.get(
+  "/profile",
+  authtenticateUser,
+  getProfile,
+);
 export default router;

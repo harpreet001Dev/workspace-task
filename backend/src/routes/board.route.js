@@ -7,6 +7,7 @@ import {
     addBoardMemberSchema,
     getBoardsQuerySchema,
     updateBoardSchema,
+    searchBoardSchema,
 } from "../validatioins/board.validation.js";
 import authorizeRole from "../middleware/role.middleware.js";
 import {
@@ -17,6 +18,7 @@ import {
     getBoard,
     updateBoard,
     deleteBoard,
+    searchBoards,
 } from "../controllers/board.controller.js";
 
 
@@ -28,6 +30,13 @@ router.post(
     authorizeRole("owner", "member"),
     validate(createBoardSchema),
     createBoard
+);
+
+router.get(
+  "/search",
+  validate(searchBoardSchema),
+  authtenticateUser,
+  searchBoards
 );
 
 router.post(
@@ -74,5 +83,7 @@ router.delete(
     authorizeRole("owner", "member"),
     deleteBoard
 )
+
+
 
 export default router;

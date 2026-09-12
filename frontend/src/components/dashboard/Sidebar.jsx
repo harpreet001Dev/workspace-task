@@ -9,6 +9,7 @@ const sidebarItems = [
   { label: "Projects", icon: "▣", path: "/projects" },
   { label: "My Tasks", icon: "☑", path: "/my-tasks" },
   { label: "All Tasks", icon: "▤", path: "/all-tasks" },
+  { label: "Profile", icon: "▤", path: "/profile" },
 ];
 
 const Sidebar = () => {

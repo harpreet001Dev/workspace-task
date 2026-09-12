@@ -60,7 +60,7 @@ const Landing = () => {
 
   if (workspace) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#07111f] px-4 py-10">
+  <main className="flex min-h-screen w-full items-center justify-center bg-[#07111f] px-4 py-10">
         <div className="w-full max-w-2xl rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-6 shadow-[0_20px_50px_rgba(15,23,42,0.65)] ring-1 ring-slate-800/80 sm:p-8">
           <div className="mb-6 flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 shadow-lg shadow-indigo-500/30">

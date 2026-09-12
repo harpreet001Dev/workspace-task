@@ -28,3 +28,13 @@ export const getRecentActivities = asyncHandler(async (req, res) => {
     data: activities,
   });
 });
+
+export const getProfile =asyncHandler(async(req,res)=>{
+   const profile = await dashboardService.getProfile(req.user._id);
+
+    return res.status(200).json({
+      success: true,
+      message: "Profile fetched successfully",
+      data: profile,
+    });
+})

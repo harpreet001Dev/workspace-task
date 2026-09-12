@@ -53,3 +53,7 @@ export const getBoardsQuerySchema = joi.object({
     .allow(null, "")
     .optional(),
 });
+
+export const searchBoardSchema = joi.object({
+  q: joi.string().trim().min(1).max(100).required(),
+});

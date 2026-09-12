@@ -80,6 +80,14 @@ const endPoints={
     MoveTask:{
         url:'/task/:taskId/move',
         auth:true
+    },
+    SearchBoard:{
+        url:'/board/search',
+        auth:true
+    },
+    Profile:{
+        url:'/dashboard/profile',
+        auth:true
     }
 }
 

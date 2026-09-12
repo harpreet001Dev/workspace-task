@@ -10,6 +10,7 @@ import MyTasks from "../pages/MyTasks";
 import AllTasks from "../pages/AllTasks";
 import Landing from "../pages/Landing";
 import InviteAccept from "../pages/InviteAccept";
+import Profile from "../pages/Profile"
 
 
 const AppRoutes = () => {
@@ -30,6 +31,7 @@ const AppRoutes = () => {
         <Route path="/projects/:boardId" element={<ProjectBoard />} />
         <Route path="/my-tasks" element={<MyTasks />} />
         <Route path="/all-tasks" element={<AllTasks />} />
+        <Route path="/profile" element={<Profile />} />
       </Route>
 
       {/* Unknown route */}

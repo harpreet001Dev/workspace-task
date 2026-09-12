@@ -104,3 +104,18 @@ export const deleteBoard = asyncHandler(async (req, res) => {
   });
 })
 
+export const searchBoards = asyncHandler(async (req, res) => {
+  const { q } = req.query;
+
+  const boards = await boardService.searchBoards(
+    req.user._id,
+    req.user.workspaceId,
+    q
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Boards fetched successfully",
+    data: boards,
+  });
+});

@@ -15,9 +15,12 @@ const PrivateRoute = () => {
   const showSidebar = location.pathname !== "/landing";
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#07111f] text-slate-100 lg:flex-row">
+    <div className="flex min-h-screen w-full flex-col bg-[#07111f] text-slate-100 lg:flex-row">
       {showSidebar && <Sidebar />}
-      <Outlet />
+
+      <div className="flex-1">
+        <Outlet />
+      </div>
     </div>
   );
 };
