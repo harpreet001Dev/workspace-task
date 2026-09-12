@@ -17,6 +17,8 @@ router.get(
   getRecentActivities,
 );
 
+
+//getting user profile
 router.get(
   "/profile",
   authtenticateUser,
