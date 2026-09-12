@@ -62,7 +62,7 @@ router.get(
 router.patch(
     "/:boardId",
     authtenticateUser,
-    authorizeRole("owner"),
+    authorizeRole("owner", "member"),
     validate(updateBoardSchema),
     updateBoard
 )

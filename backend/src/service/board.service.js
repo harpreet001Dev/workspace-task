@@ -461,14 +461,13 @@ const updateBoard = async (boardId, userId, data) => {
     throw new ApiError(404, "Board not found");
   }
 
-  const workspace = await Workspace.findById(board.workspaceId);
+  const isMember = await BoardMember.findOne({
+    boardId,
+    userId,
+  }).lean();
 
-  if (!workspace) {
-    throw new ApiError(404, "Workspace not found");
-  }
-
-  if (workspace.ownerId.toString() !== userId.toString()) {
-    throw new ApiError(403, "Only the workspace owner can update this board");
+  if (!isMember) {
+    throw new ApiError(403, "You are not a member of this board");
   }
 
   const { name } = data;

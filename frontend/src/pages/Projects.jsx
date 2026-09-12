@@ -12,7 +12,7 @@ const accentClasses = [
   "bg-gradient-to-br from-fuchsia-500 to-purple-500",
 ];
 
-const ProjectCard = ({ board, onOpenBoard, onUpdateBoard }) => {
+const ProjectCard = ({ board, onOpenBoard, onUpdateBoard, canUpdateBoard }) => {
   const short = board?.name?.charAt(0)?.toUpperCase() || "B";
   const accentClass = accentClasses[Math.abs(board?._id?.length || 0) % accentClasses.length];
   const [menuOpen, setMenuOpen] = useState(false);
@@ -48,7 +48,7 @@ const ProjectCard = ({ board, onOpenBoard, onUpdateBoard }) => {
             ⋮
           </button>
 
-          {menuOpen && (
+          {menuOpen && canUpdateBoard && (
             <div className="absolute right-0 top-10 z-20 min-w-[160px] rounded-xl border border-slate-700/80 bg-[#0f1d2d] p-2 shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
               <button
                 type="button"
@@ -341,6 +341,7 @@ const Projects = () => {
                   board={board}
                   onOpenBoard={() => navigate(`/projects/${board._id}`)}
                   onUpdateBoard={handleUpdateBoard}
+                  canUpdateBoard={true}
                 />
               ))}
             </div>
