@@ -77,6 +77,7 @@ router.patch(
     updateBoard
 )
 
+//deleting board
 router.delete(
     "/:boardId",
     authtenticateUser,
