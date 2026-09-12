@@ -1,11 +1,48 @@
-# ER Diagram — Mini SaaS (Notion + Trello + Slack)
+# Mini SaaS Project Management Tool
 
-Generated from the actual Mongoose models: `User`, `RefreshToken`, `Workspace`,
-`WorkspaceMember`, `WorkspaceInvite`, `Board`, `BoardMember`, `Column`, `Task`,
-`Attachment`, `AuditLog`.
+A Trello + Notion + Slack inspired collaboration app, built as a Senior Full
+Stack Developer assignment. Supports workspaces, boards, columns, tasks,
+attachments, real-time updates, and role-based access control.
 
-> This block renders automatically as a diagram on GitHub (README/markdown viewers
-> that support Mermaid). If viewing elsewhere, see `ER_Diagram.png` in this folder.
+## Tech stack
+
+- **Backend:** Node.js, Express, MongoDB (Mongoose), Redis, BullMQ, Socket.io
+- **Auth:** JWT (access + refresh tokens), RBAC
+- **Frontend:** React + Vite, Redux Toolkit / Zustand, React Hook Form
+- **DevOps:** Docker, Docker Compose, GitHub Actions, Swagger/OpenAPI
+
+## Features
+
+- JWT authentication with refresh token rotation
+- Role-based access control at workspace and board level
+- Workspaces → Boards → Columns → Tasks hierarchy
+- Task attachments, priorities, and audit logging
+- Real-time updates via Socket.io
+- Background jobs via BullMQ, caching via Redis
+- Swagger-documented REST API
+
+## Architecture diagram
+
+All services run as separate Docker containers, orchestrated via Docker Compose.
+
+```mermaid
+flowchart TB
+  subgraph Compose["Docker Compose network"]
+    Frontend["Frontend<br/>React + Nginx"]
+    API["Backend API<br/>Express + Socket.io"]
+    Worker["Worker<br/>BullMQ processor"]
+    Redis["Redis<br/>Cache + job queue"]
+    Mongo["MongoDB<br/>Primary database"]
+  end
+
+  Frontend --> API
+  API --> Redis
+  API --> Mongo
+  Worker --> Redis
+  Worker --> Mongo
+```
+
+## ER diagram
 
 ```mermaid
 erDiagram
@@ -112,20 +149,78 @@ erDiagram
   }
 ```
 
-## Relationship notes
+## Getting started
 
-- **User → Workspace / Board** (`ownerId` / `createdBy`): one user can own many
-  workspaces and create many boards.
-- **WorkspaceMember / BoardMember**: join collections carrying `role`
-  (`owner`/`member`) — implements RBAC at both the workspace and board level.
-- **Board.members[]** also embeds an array of `User` refs directly on the board
-  document. This overlaps with `BoardMember` and should be reconciled — either
-  drop the embedded array in favor of `BoardMember`, or document why both exist.
-- **Column.name** is a fixed enum (`To do`, `In progress`, `Review`, `Done`),
-  so columns are stage-based rather than freely renamable lists.
-- **Task**: belongs to one `Board` and one `Column`; has a creator
-  (`createdBy`) and an optional assignee (`assignedTo`), both referencing `User`.
-- **Attachment**: always tied to one `Task` and the `User` who uploaded it.
-- **AuditLog**: references `User` and `Workspace` directly, but `entityId` is a
-  polymorphic reference (resolved via the `entityType` enum: `BOARD` or `TASK`)
-  rather than a formal Mongoose `ref` — not drawable as a single FK line.
+### Prerequisites
+
+- Node.js (v18+)
+- MongoDB
+- Redis
+- Docker & Docker Compose (optional, for containerized setup)
+
+### Local setup
+
+```bash
+# clone the repo
+git clone <your-repo-url>
+cd <your-repo-folder>
+
+# install dependencies
+npm install
+
+# copy env file and fill in values
+cp .env.example .env
+
+# run the dev server
+npm run dev
+```
+
+### Docker setup
+
+Everything — frontend, backend API, background worker, Redis, and MongoDB —
+runs as containers via Docker Compose. No local Node/Mongo/Redis install needed.
+
+```bash
+docker-compose up --build
+```
+
+This spins up:
+- `frontend` — React app served via Nginx
+- `api` — Express REST API + Socket.io server
+- `worker` — BullMQ background job processor
+- `redis` — cache and job queue
+- `mongo` — primary database
+
+## Environment variables
+
+<!-- List your actual required env vars here -->
+```
+MONGO_URI=
+REDIS_URL=
+ACCESS_TOKEN_SECRET=
+REFRESH_TOKEN_SECRET=
+PORT=
+```
+
+## API documentation
+
+Swagger UI is available at `/api-docs` once the server is running.
+
+## Testing
+
+```bash
+npm run test
+```
+
+## Project structure
+
+<!-- Adjust to match your actual folder layout -->
+```
+src/
+  models/       # Mongoose schemas
+  routes/       # Express routes
+  controllers/  # Route handlers
+  middleware/   # Auth, RBAC, error handling
+  services/     # Business logic, BullMQ jobs
+  sockets/      # Socket.io handlers
+```

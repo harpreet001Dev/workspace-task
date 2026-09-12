@@ -18,3 +18,77 @@ Background jobs via BullMQ, caching via Redis
 Swagger-documented REST API
 
 Architecture diagram
+
+All services run as separate Docker containers via Docker Compose.
+
+                         ┌──────────────────────┐
+                         │        USER          │
+                         │   Browser / Client   │
+                         └──────────┬───────────┘
+                                    │
+                                    │ HTTP / HTTPS
+                                    ▼
+                    ┌─────────────────────────────┐
+                    │          FRONTEND           │
+                    │       React Application     │
+                    │                             │
+                    │  Pages / Components / API   │
+                    └─────────────┬───────────────┘
+                                  │
+                                  │ REST API
+                                  ▼
+                    ┌─────────────────────────────┐
+                    │          BACKEND            │
+                    │      Node.js + Express      │
+                    │                             │
+                    │ ┌─────────────────────────┐ │
+                    │ │ Routes                  │ │
+                    │ │ Controllers             │ │
+                    │ │ Middleware              │ │
+                    │ │ Services                │ │
+                    │ │ Authentication          │ │
+                    │ └────────────┬────────────┘ │
+                    └──────────────┼──────────────┘
+                                   │
+                                   │ Mongoose
+                                   ▼
+                    ┌─────────────────────────────┐
+                    │          DATABASE           │
+                    │           MongoDB           │
+                    │                             │
+                    │ Users / Teams / Projects    │
+                    │ Tasks / etc.                │
+                    └─────────────────────────────┘
+
+
+             ┌─────────────────────────────────────────┐
+             │              DEVELOPMENT                │
+             │                                         │
+             │ Git Repository                          │
+             │          │                              │
+             │          ▼                              │
+             │    GitHub Actions                       │
+             │          │                              │
+             │     ┌────┴─────┐                        │
+             │     │          │                        │
+             │     ▼          ▼                        │
+             │ Backend CI   Frontend CI                 │
+             │     │          │                        │
+             │     └────┬─────┘                        │
+             │          ▼                              │
+             │     Tests / Build                       │
+             └─────────────────────────────────────────┘
+
+
+                    ┌─────────────────────────┐
+                    │         DOCKER          │
+                    │                         │
+                    │  Backend Container      │
+                    │          │              │
+                    │          ▼              │
+                    │  MongoDB Container      │
+                    │                         │
+                    │   docker-compose.yml    │
+                    └─────────────────────────┘
+
+ER diagram
