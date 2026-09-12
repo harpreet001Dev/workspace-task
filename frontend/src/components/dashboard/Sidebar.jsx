@@ -7,10 +7,8 @@ import { logout } from "../../redux/slices/authSlice";
 const sidebarItems = [
   { label: "Dashboard", icon: "◫", path: "/dashboard" },
   { label: "Projects", icon: "▣", path: "/projects" },
-  { label: "Pages", icon: "☰", path: "/pages" },
-  { label: "Chat", icon: "◌", path: "/chat" },
-  { label: "Members", icon: "◍", path: "/members" },
-  { label: "Settings", icon: "⚙", path: "/settings" },
+  { label: "My Tasks", icon: "☑", path: "/my-tasks" },
+  { label: "All Tasks", icon: "▤", path: "/all-tasks" },
 ];
 
 const Sidebar = () => {
@@ -36,7 +34,7 @@ const Sidebar = () => {
     <aside
       className={`flex flex-col border-r border-slate-700/80 bg-[#0b1627] p-4 transition-all duration-200 ${
         isCollapsed ? "w-full lg:w-[92px]" : "w-full lg:w-[260px]"
-      }`}
+      } ${isCollapsed ? "h-auto" : "h-screen"}`}
     >
       <div className="mb-6 flex items-center justify-between gap-3 px-2 pt-2">
         <div className="flex items-center gap-3">
@@ -71,72 +69,39 @@ const Sidebar = () => {
         </div>
       )}
 
-      <nav className="space-y-2">
-        {sidebarItems.map((item) => {
-          const isActive = location.pathname === item.path;
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <nav className="space-y-2">
+          {sidebarItems.map((item) => {
+            const isActive = location.pathname === item.path;
 
-          return (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => navigate(item.path)}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-base transition ${
-                isActive
-                  ? "bg-indigo-500/20 text-indigo-100 ring-1 ring-indigo-500/30"
-                  : "text-slate-300 hover:bg-slate-800/70"
-              } ${isCollapsed ? "justify-center" : ""}`}
-            >
-              <span className="flex h-5 w-5 items-center justify-center text-sm">{item.icon}</span>
-              {!isCollapsed && <span>{item.label}</span>}
-            </button>
-          );
-        })}
-      </nav>
-
-      {!isCollapsed && (
-        <div className="mt-4 space-y-3">
-          <button
-            type="button"
-            onClick={() => navigate("/my-tasks")}
-            className={`flex w-full items-center justify-between rounded-xl border border-slate-700/80 bg-slate-800/60 px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition hover:bg-slate-700/60 ${
-              location.pathname === "/my-tasks" ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-200" : ""
-            }`}
-          >
-            <span>My Tasks</span>
-            <span>→</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => navigate("/all-tasks")}
-            className={`flex w-full items-center justify-between rounded-xl border border-slate-700/80 bg-slate-800/60 px-3 py-2.5 text-left text-sm font-medium text-slate-200 transition hover:bg-slate-700/60 ${
-              location.pathname === "/all-tasks" ? "border-indigo-500/50 bg-indigo-500/10 text-indigo-200" : ""
-            }`}
-          >
-            <span>All Tasks</span>
-            <span>→</span>
-          </button>
-        </div>
-      )}
+            return (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => navigate(item.path)}
+                className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-base transition ${
+                  isActive
+                    ? "bg-indigo-500/20 text-indigo-100 ring-1 ring-indigo-500/30"
+                    : "text-slate-300 hover:bg-slate-800/70"
+                } ${isCollapsed ? "justify-center" : ""}`}
+              >
+                <span className="flex h-5 w-5 items-center justify-center text-sm">{item.icon}</span>
+                {!isCollapsed && <span>{item.label}</span>}
+              </button>
+            );
+          })}
+        </nav>
+      </div>
 
       <div className="mt-auto space-y-3 pt-4">
-        {!isCollapsed ? (
-          <button className="flex w-full items-center justify-between rounded-xl border border-slate-700/80 bg-slate-800/60 px-3 py-3 text-sm text-slate-200">
-            <span className="flex items-center gap-3">
-              <span className="text-base">☾</span>
-              Dark Mode
-            </span>
-            <span className="flex h-6 w-11 items-center rounded-full bg-indigo-500/70 p-1">
-              <span className="h-4 w-4 rounded-full bg-white shadow-sm" />
-            </span>
-          </button>
-        ) : (
+        {!isCollapsed && (
           <button
             type="button"
-            className="flex w-full items-center justify-center rounded-xl border border-slate-700/80 bg-slate-800/60 p-3 text-base text-slate-200"
-            aria-label="Dark mode"
+            onClick={handleLogout}
+            className="flex w-full items-center justify-center gap-2 rounded-xl border border-rose-500/40 bg-gradient-to-r from-rose-500/20 to-red-500/20 px-3 py-3 text-sm font-semibold text-rose-100 shadow-lg shadow-rose-500/10 transition hover:brightness-110"
           >
-            ☾
+            <span className="text-base">↵</span>
+            Logout
           </button>
         )}
 
@@ -154,16 +119,6 @@ const Sidebar = () => {
               <div className="text-sm font-medium text-white">{user?.name || "User"}</div>
               <div className="truncate text-xs text-slate-400">{user?.email || ""}</div>
             </div>
-          )}
-
-          {!isCollapsed && (
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="rounded-lg border border-slate-600 bg-slate-700/80 px-2 py-1 text-xs font-medium text-slate-200 transition hover:bg-slate-600"
-            >
-              Logout
-            </button>
           )}
         </div>
       </div>

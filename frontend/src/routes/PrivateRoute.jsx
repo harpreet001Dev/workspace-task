@@ -15,7 +15,7 @@ const PrivateRoute = () => {
   const showSidebar = location.pathname !== "/landing";
 
   return (
-    <div className="flex min-h-screen bg-[#07111f] text-slate-100">
+    <div className="flex min-h-screen flex-col bg-[#07111f] text-slate-100 lg:flex-row">
       {showSidebar && <Sidebar />}
       <Outlet />
     </div>

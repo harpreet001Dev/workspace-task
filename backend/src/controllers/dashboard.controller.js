@@ -15,3 +15,16 @@ export const getDashboard = asyncHandler(async (req, res) => {
     data: task,
   });
 });
+
+export const getRecentActivities = asyncHandler(async (req, res) => {
+  const activities = await dashboardService.getRecentActivities(
+    req.user._id,
+    req.user.workspaceId
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Recent activities fetched successfully",
+    data: activities,
+  });
+});

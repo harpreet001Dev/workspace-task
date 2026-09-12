@@ -3,47 +3,15 @@ import ProjectCard from "../components/dashboard/ProjectCard";
 import TaskItem from "../components/dashboard/TaskItem";
 import ActivityItem from "../components/dashboard/ActivityItem";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import api from "../api/api";
 import { useEffect, useState } from "react";
-
-const activityItems = [
-  {
-    initials: "A",
-    colorClass: "bg-indigo-500",
-    message: "Alex moved \"Login UI\" to Done",
-    time: "10 minutes ago",
-  },
-  {
-    initials: "S",
-    colorClass: "bg-violet-500",
-    message: "Sarah created a new task \"API documentation\"",
-    time: "35 minutes ago",
-  },
-  {
-    initials: "J",
-    colorClass: "bg-slate-500",
-    message: "John joined the workspace",
-    time: "1 hour ago",
-  },
-  {
-    initials: "Y",
-    colorClass: "bg-emerald-500",
-    message: "You created \"Payment Integration\" project",
-    time: "2 hours ago",
-  },
-  {
-    initials: "E",
-    colorClass: "bg-amber-500",
-    message: "Emily commented on \"Design System\"",
-    time: "3 hours ago",
-  },
-];
-
 
 const Dashboard = () => {
   const user = useSelector((state) => state.auth.user);
   const workspace = useSelector((state) => state.auth.workspace);
   const [data, setData] = useState([]);
+  const [recentActivities, setRecentActivities] = useState([]);
   const [inviteMessage, setInviteMessage] = useState("");
 
   const getDashboardData = async () => {
@@ -67,6 +35,17 @@ const Dashboard = () => {
     }
   }
 
+  const getRecentActivities = async () => {
+    try {
+      const res = await api.GetRecentActivities();
+      if (res.success) {
+        setRecentActivities(res?.data || []);
+      }
+    } catch (error) {
+      console.log(error, "Unable to load recent activities.");
+    }
+  };
+
   const handleInviteClick = async () => {
     try {
       const res = await api.CreateInvite();
@@ -86,7 +65,8 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    getDashboardData()
+    getDashboardData();
+    getRecentActivities();
   }, [])
 
   const dashboardStats = [
@@ -113,39 +93,46 @@ const Dashboard = () => {
 
 
   return (
-    <main className="flex-1 p-4 lg:p-6">
+    <main className="flex-1 p-3 sm:p-4 lg:p-6">
       <div className="mx-auto max-w-[1400px]">
-        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.65)] lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex items-center gap-3 rounded-xl border border-slate-700/70 bg-slate-800/50 px-3 py-2.5 text-slate-300">
-            <span className="text-lg">⌕</span>
-            <input
-              type="text"
-              placeholder="Search projects, tasks, pages..."
-              className="w-full bg-transparent text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none lg:w-[380px]"
-            />
-          </div>
+        <div className="mb-6 rounded-2xl border border-slate-700/80 bg-gradient-to-r from-[#0f1d2d] via-[#112235] to-[#0f1d2d] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.65)]">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div>
+              <p className="mb-2 text-xs uppercase tracking-[0.22em] text-indigo-300">Workspace overview</p>
+              <h1 className="text-3xl font-bold tracking-tight text-white md:text-4xl">
+                Good evening, {user?.name} 👋
+              </h1>
+              <p className="mt-2 text-base text-slate-400 md:text-lg">
+                Here’s what’s happening in your workspace today.
+              </p>
+            </div>
 
-          <div className="flex items-center gap-3 self-end lg:self-auto">
-            <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-800/60 text-slate-200">
-              🔔
-            </button>
-            <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-800/60 text-slate-200">
-              ⚙
-            </button>
-            {workspace?.role === "owner" && (
-              <button
-                onClick={handleInviteClick}
-                className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:brightness-110"
-              >
-                + Invite
-              </button>
-
-            )}
-            <div className="flex items-center gap-3 rounded-xl border border-slate-700/80 bg-slate-800/60 px-2 py-1.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 font-semibold text-white">
-                {user?.name?.charAt(0).toUpperCase()}
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              <div className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-[#122235] px-3 py-2 text-sm text-slate-300">
+                <span className="text-lg">🗓</span>
+                {new Date().toLocaleDateString("en-US", {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  year: "numeric",
+                })}
               </div>
-              <div className="pr-1 text-sm text-slate-200">{user?.name}</div>
+
+              {workspace?.role === "owner" && (
+                <button
+                  onClick={handleInviteClick}
+                  className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:brightness-110"
+                >
+                  Invite member
+                </button>
+              )}
+
+              <div className="flex items-center gap-3 rounded-xl border border-slate-700/80 bg-slate-800/60 px-2 py-1.5">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 font-semibold text-white">
+                  {user?.name?.charAt(0)?.toUpperCase() || "U"}
+                </div>
+                <div className="pr-1 text-sm text-slate-200">{user?.name}</div>
+              </div>
             </div>
           </div>
         </div>
@@ -156,40 +143,33 @@ const Dashboard = () => {
           </div>
         )}
 
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <h1 className="text-4xl font-bold tracking-tight text-white">Good evening, {user?.name} 👋</h1>
-            <p className="mt-2 text-lg text-slate-400">Here’s what’s happening in your workspace today.</p>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-xl border border-slate-700/80 bg-[#122235] px-3 py-2 text-sm text-slate-300">
-            <span className="text-lg">🗓</span>
-            {new Date().toLocaleDateString("en-US", {
-              weekday: "short",
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </div>
-        </div>
-
-        <div className="mb-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mb-6 grid gap-4 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
           {dashboardStats.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-[1.4fr_0.6fr]">
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(320px,0.9fr)]">
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-4 shadow-sm shadow-slate-950/20">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-2xl font-semibold text-white">My Tasks</h2>
-                <button className="text-sm font-medium text-indigo-300">View all →</button>
+                <Link
+                  to="/my-tasks"
+                  className="text-sm font-medium text-indigo-300 transition hover:text-indigo-200"
+                >
+                  View all →
+                </Link>
               </div>
 
               <div className="space-y-3">
                 {data?.myTasks?.map((task) => (
-                  <TaskItem key={task._id} {...task} />
+                  <TaskItem
+                    key={task._id}
+                    title={task.title}
+                    priority={task.priority}
+                    description={task.description}
+                  />
                 ))}
               </div>
             </div>
@@ -197,13 +177,18 @@ const Dashboard = () => {
             <div className="rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-4 shadow-sm shadow-slate-950/20">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-2xl font-semibold text-white">Recent Activity</h2>
-                <button className="text-sm font-medium text-indigo-300">View all →</button>
               </div>
 
               <div className="space-y-1">
-                {activityItems.map((item) => (
-                  <ActivityItem key={item.message} {...item} />
-                ))}
+                {recentActivities.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-slate-600 bg-slate-900/40 p-4 text-sm text-slate-300">
+                    No recent activity yet.
+                  </div>
+                ) : (
+                  recentActivities.map((item) => (
+                    <ActivityItem key={item._id} initials={item.initials} colorClass={item.colorClass} message={item.message} time={item.timeLabel} />
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -212,7 +197,9 @@ const Dashboard = () => {
             <div className="rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-4 shadow-sm shadow-slate-950/20">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-2xl font-semibold text-white">Projects</h2>
-                <button className="text-sm font-medium text-indigo-300">View all →</button>
+                <Link to="/projects" className="text-sm font-medium text-indigo-300 transition hover:text-indigo-200">
+                  View all →
+                </Link>
               </div>
 
               <div className="space-y-4">
@@ -227,33 +214,29 @@ const Dashboard = () => {
             </div>
 
             <div className="rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-4 shadow-sm shadow-slate-950/20">
-              <h2 className="mb-4 text-2xl font-semibold text-white">Quick Actions</h2>
-              <div className="space-y-3">
-                <button className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-3 text-base font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:brightness-110">
-                  + New Project
-                </button>
-                <button className="w-full rounded-xl border border-slate-700/80 bg-slate-800/50 px-4 py-3 text-base font-medium text-slate-100 transition hover:bg-slate-700/60">
-                  + Create Task
-                </button>
-                <button className="w-full rounded-xl border border-slate-700/80 bg-slate-800/50 px-4 py-3 text-base font-medium text-slate-100 transition hover:bg-slate-700/60">
-                  + Create Page
-                </button>
-                <button className="w-full rounded-xl border border-slate-700/80 bg-slate-800/50 px-4 py-3 text-base font-medium text-slate-100 transition hover:bg-slate-700/60">
-                  + Invite Member
-                </button>
+              <h2 className="mb-4 text-2xl font-semibold text-white">Quick Links</h2>
+              <div className="grid gap-3">
+                <Link
+                  to="/projects"
+                  className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-3 text-center text-base font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:brightness-110"
+                >
+                  View Projects
+                </Link>
+                <Link
+                  to="/my-tasks"
+                  className="w-full rounded-xl border border-slate-700/80 bg-slate-800/50 px-4 py-3 text-center text-base font-medium text-slate-100 transition hover:bg-slate-700/60"
+                >
+                  Open My Tasks
+                </Link>
+                <Link
+                  to="/all-tasks"
+                  className="w-full rounded-xl border border-slate-700/80 bg-slate-800/50 px-4 py-3 text-center text-base font-medium text-slate-100 transition hover:bg-slate-700/60"
+                >
+                  Open All Tasks
+                </Link>
               </div>
             </div>
 
-
-            <div className="rounded-2xl border border-slate-700/80 bg-gradient-to-br from-indigo-500/20 via-slate-800/60 to-violet-500/20 p-4 shadow-sm shadow-slate-950/20">
-              <div className="flex items-center justify-between">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-xl text-white">
-                  ⚡
-                </div>
-              </div>
-              <div className="mt-6 text-2xl font-semibold text-white">Keep building.</div>
-              <div className="mt-2 text-sm text-slate-300">Great teams turn ideas into reality.</div>
-            </div>
           </div>
         </div>
       </div>

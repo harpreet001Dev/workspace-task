@@ -29,6 +29,10 @@ const endPoints={
         url:'/dashboard',
         auth:true
     },
+    RecentActivities:{
+        url:'/dashboard/recent-activity',
+        auth:true
+    },
     Board:{
         url:'/board',
         auth:true

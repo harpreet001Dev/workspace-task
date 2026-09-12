@@ -176,6 +176,9 @@ const Logout = () => {
 const Dashboard = (data) => {
     return get(endPoints.Dashboard.url, endPoints.Dashboard.auth)
 }
+const GetRecentActivities = () => {
+    return get(endPoints.RecentActivities.url, endPoints.RecentActivities.auth)
+}
 const Board = (limit, cursor = null) => {
     return get(endPoints.Board.url, endPoints.Board.auth,
         {
@@ -239,6 +242,7 @@ export default {
     CreateInvite,
     AcceptInvite,
     Dashboard,
+    GetRecentActivities,
     Board,
     GetBoard,
     MoveTask,

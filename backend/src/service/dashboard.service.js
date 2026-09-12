@@ -4,6 +4,113 @@ import Board from '../models/Board.js'
 import BoardMember from '../models/BoardMember.js'
 import Task from '../models/Task.js'
 import redisConnection from "../config/redis.js";
+import { AuditLog } from "../models/Audit.js";
+
+const buildAuditMessage = (activity) => {
+  const userName = activity.userId?.name || "Someone";
+  const title = activity.details?.title || activity.details?.name || "item";
+
+  switch (activity.action) {
+    case "BOARD_CREATED":
+      return `${userName} created board "${activity.details?.name || "Untitled board"}"`;
+    case "BOARD_UPDATED":
+      return `${userName} updated board "${activity.details?.name || "Untitled board"}"`;
+    case "BOARD_DELETED":
+      return `${userName} deleted board "${activity.details?.name || "Untitled board"}"`;
+    case "TASK_CREATED":
+      return `${userName} created task "${title}"`;
+    case "TASK_UPDATED":
+      return `${userName} updated task "${title}"`;
+    case "TASK_DELETED":
+      return `${userName} deleted task "${title}"`;
+    case "TASK_MOVED":
+      return `${userName} moved task "${title}" from "${activity.details?.fromColumnName || "previous column"}" to "${activity.details?.toColumnName || "new column"}"`;
+    default:
+      return `${userName} performed an activity`;
+  }
+};
+
+const getRelativeTime = (dateValue) => {
+  const diffInMinutes = Math.max(0, Math.round((Date.now() - new Date(dateValue).getTime()) / 60000));
+
+  if (diffInMinutes < 1) {
+    return "just now";
+  }
+
+  if (diffInMinutes < 60) {
+    const minutes = diffInMinutes;
+    return `${minutes} minute${minutes === 1 ? "" : "s"} ago`;
+  }
+
+  const diffInHours = Math.round(diffInMinutes / 60);
+
+  if (diffInHours < 24) {
+    return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
+  }
+
+  const diffInDays = Math.round(diffInHours / 24);
+
+  if (diffInDays < 7) {
+    return `${diffInDays} day${diffInDays === 1 ? "" : "s"} ago`;
+  }
+
+  return new Date(dateValue).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+};
+
+const getRelativeActivityColors = (action) => {
+  const colorMap = {
+    BOARD_CREATED: "bg-indigo-500",
+    BOARD_UPDATED: "bg-sky-500",
+    BOARD_DELETED: "bg-rose-500",
+    TASK_CREATED: "bg-emerald-500",
+    TASK_UPDATED: "bg-amber-500",
+    TASK_DELETED: "bg-rose-500",
+    TASK_MOVED: "bg-violet-500",
+  };
+
+  return colorMap[action] || "bg-slate-500";
+};
+
+const getInitials = (name = "User") => {
+  return name
+    .split(" ")
+    .map((part) => part.charAt(0))
+    .slice(0, 2)
+    .join("")
+    .toUpperCase() || "U";
+};
+
+const getRecentActivities = async (userId, workspaceId) => {
+  const workspaceMember = await WorkspaceMember.findOne({
+    userId,
+    workspaceId,
+  });
+
+  if (!workspaceMember) {
+    throw new ApiError(403, "You are not a member of this workspace");
+  }
+
+  const recentActivities = await AuditLog.find({ workspaceId })
+    .populate("userId", "name")
+    .sort({ createdAt: -1 })
+    .limit(5)
+    .lean();
+
+  return recentActivities.map((activity) => ({
+    _id: activity._id,
+    action: activity.action,
+    message: buildAuditMessage(activity),
+    timeLabel: getRelativeTime(activity.createdAt),
+    initials: getInitials(activity.userId?.name),
+    colorClass: getRelativeActivityColors(activity.action),
+    createdAt: activity.createdAt,
+    details: activity.details,
+  }));
+};
 
 const getDashboard = async (userId, workspaceId) => {
 
@@ -122,4 +229,5 @@ const getDashboard = async (userId, workspaceId) => {
 
 export default {
   getDashboard,
+  getRecentActivities,
 }
