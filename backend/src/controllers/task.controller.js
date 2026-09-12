@@ -74,6 +74,23 @@ export const getAllTasks = asyncHandler(async (req, res) => {
   });
 });
 
+export const updateTask = asyncHandler(async (req, res) => {
+  const { taskId } = req.params;
+
+  const task = await taskService.updateTask(
+    taskId,
+    req.user._id,
+    req.user.workspaceId,
+    req.body
+  );
+
+  return res.status(200).json({
+    success: true,
+    message: "Task updated successfully",
+    data: task,
+  });
+});
+
 export const moveTask = asyncHandler(async (req, res) => {
     const { taskId } = req.params;
     const { columnId, order } = req.body;

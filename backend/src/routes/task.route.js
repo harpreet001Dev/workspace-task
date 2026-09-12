@@ -9,9 +9,14 @@ import {
   getAllTasks,
   uploadTaskAttachments,
   getTaskAttachments,
-  moveTask
+  updateTask,
+  moveTask,
 } from "../controllers/task.controller.js";
-import { createTaskSchema,moveTaskSchema } from "../validatioins/task.validation.js";
+import {
+  createTaskSchema,
+  updateTaskSchema,
+  moveTaskSchema,
+} from "../validatioins/task.validation.js";
 
 const router = express.Router();
 
@@ -44,6 +49,14 @@ router.get(
   authtenticateUser,
   authorizeRole("owner", "member"),
   getAllTasks
+);
+
+router.patch(
+  "/:taskId",
+  authtenticateUser,
+  authorizeRole("owner", "member"),
+  validate(updateTaskSchema),
+  updateTask
 );
 
 router.patch(

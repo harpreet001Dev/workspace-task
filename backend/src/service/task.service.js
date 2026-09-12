@@ -134,6 +134,60 @@ const getAllTasks = async (boardId) => {
   }));
 };
 
+const updateTask = async (taskId, userId, workspaceId, data) => {
+  const task = await Task.findById(taskId);
+
+  if (!task) {
+    throw new ApiError(404, "Task not found");
+  }
+
+  const board = await Board.findById(task.boardId).lean();
+
+  if (!board) {
+    throw new ApiError(404, "Board not found");
+  }
+
+  if (board.workspaceId.toString() !== workspaceId.toString()) {
+    throw new ApiError(403, "Task does not belong to your workspace");
+  }
+
+  const updatePayload = {};
+
+  if (data.title !== undefined) {
+    updatePayload.title = data.title.trim();
+  }
+
+  if (data.description !== undefined) {
+    updatePayload.description = data.description.trim();
+  }
+
+  if (data.priority !== undefined) {
+    updatePayload.priority = data.priority;
+  }
+
+  if (data.assignedTo !== undefined) {
+    updatePayload.assignedTo = data.assignedTo || null;
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    throw new ApiError(400, "No task fields provided for update");
+  }
+
+  const updatedTask = await Task.findByIdAndUpdate(
+    taskId,
+    { $set: updatePayload },
+    { new: true }
+  )
+    .populate("assignedTo", "name")
+    .populate("columnId", "name")
+    .lean();
+
+  return {
+    ...updatedTask,
+    workspaceId: board.workspaceId,
+  };
+};
+
 const moveTask = async (taskId, columnId, order) => {
   const task = await Task.findById(taskId);
 
@@ -235,5 +289,6 @@ export default {
   uploadTaskAttachments,
   getTaskAttachments,
   getAllTasks,
+  updateTask,
   moveTask,
 };
