@@ -1,4 +1,5 @@
 
+import fs from 'fs';
 import multer from 'multer';
 import path from 'path';
 import crypto from 'crypto';
@@ -32,7 +33,11 @@ const allowedMimeTypes = new Set([
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    const uploadPath = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
   },
 
   filename: (req, file, cb) => {

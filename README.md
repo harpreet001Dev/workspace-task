@@ -335,23 +335,25 @@ The project uses Docker Compose to run the required services, including:
 
 You do **not** need to install MongoDB or Redis separately on your machine.
 
-## Local Setup
+## Quick Start (Single Command)
+
+The project is preconfigured with zero-config development defaults. To run everything right after cloning:
 
 ```bash
-# Clone the repository
+# Clone and navigate into the repository
 git clone <your-repo-url>
 cd <your-repo-folder>
 
-# Create the environment files
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
-
-# Fill in the required environment variables (defaults work out-of-the-box)
-# Edit backend/.env and frontend/.env if customizing ports or secrets
-
-# Build and start all services
+# Build and start all 6 services with a single command
 docker compose up --build
 ```
+
+> [!NOTE]
+> Creating local `.env` files is completely **optional**. `docker-compose.yml` includes safe development defaults for all services out-of-the-box. If you wish to customize secrets, ports, or URLs, copy the example files:
+> ```bash
+> cp backend/.env.example backend/.env
+> cp frontend/.env.example frontend/.env
+> ```
 
 The application will be available at:
 
