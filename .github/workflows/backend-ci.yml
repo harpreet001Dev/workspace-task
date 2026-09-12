@@ -49,6 +49,13 @@ jobs:
 
       - name: Start Docker Compose
         run: docker compose up -d
+      
+      - name: Check Docker containers
+        run: docker compose ps
+
+      - name: Show API logs
+        run: docker compose logs api --tail=100
+
 
       - name: Run tests
         working-directory: backend
