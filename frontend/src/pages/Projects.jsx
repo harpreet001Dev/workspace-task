@@ -229,15 +229,19 @@ const getBoards = async () => {
       const newBoards = res.data.boards || [];
 
       setBoards((prevBoards) => {
-        const updatedBoards = [...prevBoards, ...newBoards];
+  const mergedBoards = [...prevBoards, ...newBoards];
 
-        localStorage.setItem(
-          "boardsData",
-          JSON.stringify(updatedBoards)
-        );
+  const uniqueBoards = Array.from(
+    new Map(mergedBoards.map((board) => [board._id, board])).values()
+  );
 
-        return updatedBoards;
-      });
+  localStorage.setItem(
+    "boardsData",
+    JSON.stringify(uniqueBoards)
+  );
+
+  return uniqueBoards;
+});
 
       setCursor(res.data.nextCursor);
       setHasMore(res.data.hasMore);
@@ -373,7 +377,7 @@ const getBoards = async () => {
   return (
     <main className="flex-1 p-4 lg:p-6">
       <div className="mx-auto max-w-[1400px]">
-        <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.65)] lg:flex-row lg:items-center lg:justify-between">
+        {/* <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-4 shadow-[0_20px_50px_rgba(15,23,42,0.65)] lg:flex-row lg:items-center lg:justify-between">
    
           <div className="flex items-center gap-3 self-end lg:self-auto">
             <button className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-800/60 text-slate-200">
@@ -389,7 +393,7 @@ const getBoards = async () => {
               <div className="pr-1 text-sm text-slate-200">{user?.name || "User"}</div>
             </div>
           </div>
-        </div>
+        </div> */}
 
         <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -417,14 +421,6 @@ const getBoards = async () => {
               className="w-full bg-transparent text-sm text-slate-200 placeholder:text-slate-500 focus:outline-none"
             />
           </div>
-
-          <button className="flex items-center justify-between gap-3 rounded-xl border border-slate-700/80 bg-slate-800/60 px-3 py-2.5 text-left text-sm text-slate-200">
-            <span className="flex items-center gap-2">
-              <span>☰</span>
-              All Projects
-            </span>
-            <span>⌄</span>
-          </button>
         </div>
 
         {boards.length === 0 ? (

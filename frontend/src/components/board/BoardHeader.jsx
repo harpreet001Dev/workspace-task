@@ -21,7 +21,7 @@ const BoardHeader = ({ board, canManageMembers, onAddMembers }) => (
         </div>
 
         <div className="flex items-center gap-3">
-            <div className="flex -space-x-2">
+            {/* <div className="flex -space-x-2">
                 {Array.from({ length: 3 }).map((_, index) => (
                     <div
                         key={index}
@@ -33,7 +33,7 @@ const BoardHeader = ({ board, canManageMembers, onAddMembers }) => (
                         {String.fromCharCode(65 + index)}
                     </div>
                 ))}
-            </div>
+            </div> */}
 
             {canManageMembers && (
                 <button
@@ -45,19 +45,7 @@ const BoardHeader = ({ board, canManageMembers, onAddMembers }) => (
                 </button>
             )}
 
-            <button
-                type="button"
-                className="rounded-xl border border-slate-700/80 bg-slate-800/60 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-slate-700/60"
-            >
-                Share
-            </button>
 
-            <button
-                type="button"
-                className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-700/80 bg-slate-800/60 text-xl text-slate-200"
-            >
-                ⋯
-            </button>
         </div>
     </div>
 );

@@ -21,19 +21,7 @@ const BoardTabs = ({ activeTab, boardMembersLength, onTabChange, onCreateTask, b
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-            <button
-                type="button"
-                className="rounded-xl border border-slate-700/80 bg-slate-800/50 px-3 py-2 text-sm font-medium text-slate-200"
-            >
-                Filters
-            </button>
-
-            <button
-                type="button"
-                className="rounded-xl border border-slate-700/80 bg-slate-800/50 px-3 py-2 text-sm font-medium text-slate-200"
-            >
-                Group by: None
-            </button>
+    
 
             <button
                 type="button"
