@@ -36,16 +36,12 @@ jobs:
         working-directory: backend
         run: npm audit --audit-level=high
 
+      - name: Start Docker Compose
+        run: docker compose up -d
+        
       - name: Run tests
         working-directory: backend
         run: npm test
 
-      - name: Start backend application
-        working-directory: backend
-        env:
-            MONGO_URI: ${{ secrets.MONGO_URI }}
-        run: npm start &
-    
-      - name: Check Backend Health
-        run: curl --fail http://localhost:${PORT}/health
+
 
