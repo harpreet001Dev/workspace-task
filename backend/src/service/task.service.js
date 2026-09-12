@@ -62,6 +62,7 @@ const createTask = async (boardId, createdBy, data, files = []) => {
 
   return {
     ...task.toObject(),
+    workspaceId: board.workspaceId,
     attachments,
   };
 };
@@ -139,6 +140,7 @@ const moveTask = async (taskId, columnId, order) => {
 
   const sourceColumnId = task.columnId;
   const sourceColumn = await Column.findById(sourceColumnId);
+  const board = await Board.findById(task.boardId);
 
   if (!sourceColumn) {
     throw new ApiError(404, "Source column not found");
@@ -207,7 +209,10 @@ const moveTask = async (taskId, columnId, order) => {
   await task.save();
 
   return {
-    task,
+    task: {
+      ...task.toObject(),
+      workspaceId: board?.workspaceId,
+    },
     sourceColumn,
     targetColumn,
   };

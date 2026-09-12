@@ -6,9 +6,9 @@ const auditLogSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: [
-        "PROJECT_CREATED",
-        "PROJECT_UPDATED",
-        "PROJECT_DELETED",
+        "BOARD_CREATED",
+        "BOARD_UPDATED",
+        "BOARD_DELETED",
 
         "TASK_CREATED",
         "TASK_UPDATED",
@@ -23,16 +23,16 @@ const auditLogSchema = new mongoose.Schema(
       required: true,
     },
 
-    projectId: {
+    workspaceId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Project",
+      ref: "Workspace",
       required: true,
     },
 
     entityType: {
       type: String,
-      enum: ["PROJECT", "TASK"],
       required: true,
+      enum: ["BOARD", "TASK"],
     },
 
     entityId: {
@@ -42,6 +42,7 @@ const auditLogSchema = new mongoose.Schema(
 
     details: {
       type: mongoose.Schema.Types.Mixed,
+      default: {},
     },
   },
   {

@@ -11,6 +11,8 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+      redis:
+        condition: service_started
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -32,8 +34,33 @@ services:
       retries: 10
       start_period: 10s
 
+  redis:
+    image: redis:7
+    container_name: workspace-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+
+  worker:
+    build: ./backend
+    container_name: workspace-worker
+    restart: unless-stopped
+    command: npm run worker
+    env_file:
+      - ./backend/.env
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+
   mongo-express:
     image: mongo-express
+    container_name: workspace-mongo-express
+    restart: unless-stopped
     ports:
       - "8081:8081"
     environment:

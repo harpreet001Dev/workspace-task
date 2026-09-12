@@ -6,6 +6,7 @@ import BoardMember from "../models/BoardMember.js";
 import WorkspaceMember from '../models/WorkspaceMember.js'
 import Column from '../models/Column.js';
 import mongoose from 'mongoose';
+import auditLogQueue from "../queues/auditLog.queue.js";
 
 const createBoard = async (workspaceId, createdBy, data) => {
     const { name } = data;
@@ -35,6 +36,17 @@ const createBoard = async (workspaceId, createdBy, data) => {
     ];
 
     await Column.insertMany(defaultColumns);
+
+    await auditLogQueue.add("create-audit-log", {
+        action: "BOARD_CREATED",
+        userId: createdBy,
+        workspaceId,
+        entityType: "BOARD",
+        entityId: board._id,
+        details: {
+            name: board.name,
+        },
+    });
 
     return board;
 };
