@@ -6,12 +6,16 @@ on:
       - main
     paths:
       - 'backend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/backend-ci.yml'
 
   pull_request:
     branches:
       - main
     paths:
       - 'backend/**'
+      - 'docker-compose.yml'
+      - '.github/workflows/backend-ci.yml'
 
 jobs:
   test:
@@ -36,17 +40,23 @@ jobs:
         working-directory: backend
         run: npm audit --audit-level=high
 
+      - name: Create backend env
+        run: |
+          echo "MONGO_URI=${{ secrets.MONGO_URI }}" >> backend/.env
+          echo "PORT=${{ secrets.PORT }}" >> backend/.env
+          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET }}" >> backend/.env
+          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET }}" >> backend/.env
+
       - name: Start Docker Compose
-        env:
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-          PORT: ${{ secrets.PORT }}
-          ACCESS_TOKEN_SECRET: ${{ secrets.ACCESS_TOKEN_SECRET }}
-          REFRESH_TOKEN_SECRET: ${{ secrets.REFRESH_TOKEN_SECRET }}
         run: docker compose up -d
 
       - name: Run tests
         working-directory: backend
         run: npm test
 
+      - name: Check Backend Health
+        run: curl --fail http://localhost:${{ secrets.PORT }}/health
 
-
+      - name: Stop Docker Compose
+        if: always()
+        run: docker compose down

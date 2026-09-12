@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 
-
+//redis connection
 
 const redisConnection = new Redis({
   host: 'redis',
