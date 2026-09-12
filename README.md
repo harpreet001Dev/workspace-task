@@ -17,7 +17,7 @@ attachments, real-time updates, and role-based access control.
 - Role-based access control at workspace and board level
 - Workspaces → Boards → Columns → Tasks hierarchy
 - Task attachments, priorities, and audit logging
-- Real-time updates via Socket.io
+- Drag-and-drop task management with real-time synchronization
 - Background jobs via BullMQ, caching via Redis
 - Swagger-documented REST API
 
@@ -47,6 +47,8 @@ attachments, real-time updates, and role-based access control.
 
 The application uses JWT authentication combined with workspace-level and
 board-level authorization.
+
+
 
 ### Board permissions
 
@@ -96,6 +98,18 @@ Task deletion is restricted to:
 - Workspace owner
 - Board creator
 - Task creator
+
+
+## Real-Time Collaboration
+
+The application uses Socket.io to provide real-time collaboration between
+users working on the same board.
+
+- When a task is moved between columns using drag-and-drop, the change is
+  broadcast to other connected users of baord.
+- Connected users receive real-time task movement updates without refreshing
+  the page.
+- This keeps the board state synchronized across multiple users.
 
 ## Architecture diagram
 
