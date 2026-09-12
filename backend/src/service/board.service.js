@@ -485,4 +485,44 @@ const updateBoard = async (boardId, userId, data) => {
   return updatedBoard;
 };
 
-export default { createBoard, addBoardMember, getUserBoards, getBoardDetails, updateBoard }
+const deleteBoard = async (boardId, userId) => {
+  const board = await Board.findById(boardId);
+
+  if (!board) {
+    throw new ApiError(404, "Board not found");
+  }
+
+  const workspace = await Workspace.findById(board.workspaceId);
+
+  if (!workspace) {
+    throw new ApiError(404, "Workspace not found");
+  }
+
+  const isWorkspaceOwner = workspace.ownerId.toString() === userId.toString();
+  const isBoardCreator = board.createdBy.toString() === userId.toString();
+
+  if (!isWorkspaceOwner && !isBoardCreator) {
+    throw new ApiError(
+      403,
+      "Only the workspace owner or board creator can delete this board"
+    );
+  }
+
+  await Promise.all([
+    BoardMember.deleteMany({ boardId }),
+    Column.deleteMany({ boardId }),
+    Task.deleteMany({ boardId }),
+    Board.findByIdAndDelete(boardId),
+  ]);
+
+  return board;
+};
+
+export default {
+  createBoard,
+  addBoardMember,
+  getUserBoards,
+  getBoardDetails,
+  updateBoard,
+  deleteBoard
+}

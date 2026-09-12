@@ -16,6 +16,7 @@ import {
     getBoards,
     getBoard,
     updateBoard,
+    deleteBoard,
 } from "../controllers/board.controller.js";
 
 
@@ -65,6 +66,13 @@ router.patch(
     authorizeRole("owner", "member"),
     validate(updateBoardSchema),
     updateBoard
+)
+
+router.delete(
+    "/:boardId",
+    authtenticateUser,
+    authorizeRole("owner", "member"),
+    deleteBoard
 )
 
 export default router;
