@@ -12,9 +12,10 @@ const accentClasses = [
   "bg-gradient-to-br from-fuchsia-500 to-purple-500",
 ];
 
-const ProjectCard = ({ board, onOpenBoard }) => {
+const ProjectCard = ({ board, onOpenBoard, onUpdateBoard, onDeleteBoard }) => {
   const short = board?.name?.charAt(0)?.toUpperCase() || "B";
   const accentClass = accentClasses[Math.abs(board?._id?.length || 0) % accentClasses.length];
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="rounded-2xl border border-slate-700/80 bg-[#112235] p-4 shadow-[0_20px_40px_rgba(15,23,42,0.25)]">
@@ -38,7 +39,40 @@ const ProjectCard = ({ board, onOpenBoard }) => {
           </div>
         </div>
 
-        <button className="text-xl text-slate-400">⋮</button>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setMenuOpen((prev) => !prev)}
+            className="text-xl text-slate-400 transition hover:text-white"
+          >
+            ⋮
+          </button>
+
+          {menuOpen && (
+            <div className="absolute right-0 top-10 z-20 min-w-[160px] rounded-xl border border-slate-700/80 bg-[#0f1d2d] p-2 shadow-[0_20px_40px_rgba(15,23,42,0.45)]">
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onUpdateBoard(board);
+                }}
+                className="w-full rounded-lg px-3 py-2 text-left text-sm text-slate-200 transition hover:bg-slate-800/70"
+              >
+                Update board
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  onDeleteBoard(board);
+                }}
+                className="mt-1 w-full rounded-lg px-3 py-2 text-left text-sm text-rose-300 transition hover:bg-rose-500/10"
+              >
+                Delete board
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="mt-5 flex items-center justify-between gap-4 text-sm text-slate-300">
@@ -113,8 +147,11 @@ const Projects = () => {
   const loadMoreRef = useRef(null);
 
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [projectName, setProjectName] = useState("");
+  const [editingBoardId, setEditingBoardId] = useState(null);
   const [creatingProject, setCreatingProject] = useState(false);
+  const [updatingBoard, setUpdatingBoard] = useState(false);
   const [createError, setCreateError] = useState("");
 
   const getBoards = async () => {
@@ -181,6 +218,59 @@ const Projects = () => {
       setCreateError(error.message || "Unable to create project.");
     } finally {
       setCreatingProject(false);
+    }
+  };
+
+  const handleUpdateBoard = (board) => {
+    setEditingBoardId(board._id);
+    setProjectName(board.name);
+    setShowUpdateModal(true);
+  };
+
+  const handleSubmitUpdateBoard = async (event) => {
+    event.preventDefault();
+
+    if (!projectName.trim()) {
+      setCreateError("Please enter a project name.");
+      return;
+    }
+
+    try {
+      setUpdatingBoard(true);
+      setCreateError("");
+
+      const response = await api.UpdateBoard(editingBoardId, {
+        name: projectName.trim(),
+      });
+
+      if (response.success) {
+        setProjectName("");
+        setEditingBoardId(null);
+        setShowUpdateModal(false);
+        await getBoards();
+        return;
+      }
+
+      setCreateError(response.message || "Unable to update project.");
+    } catch (error) {
+      setCreateError(error.message || "Unable to update project.");
+    } finally {
+      setUpdatingBoard(false);
+    }
+  };
+
+  const handleDeleteBoard = async (board) => {
+    try {
+      const response = await api.DeleteBoard(board._id);
+
+      if (response.success) {
+        setBoards((prevBoards) => prevBoards.filter((item) => item._id !== board._id));
+        return;
+      }
+
+      setCreateError(response.message || "Unable to delete project.");
+    } catch (error) {
+      setCreateError(error.message || "Unable to delete project.");
     }
   };
 
@@ -275,6 +365,8 @@ const Projects = () => {
                   key={board._id}
                   board={board}
                   onOpenBoard={() => navigate(`/projects/${board._id}`)}
+                  onUpdateBoard={handleUpdateBoard}
+                  onDeleteBoard={handleDeleteBoard}
                 />
               ))}
             </div>
@@ -339,6 +431,71 @@ const Projects = () => {
                   className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {creatingProject ? "Creating..." : "Create Project"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showUpdateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 px-4">
+          <div className="w-full max-w-lg rounded-2xl border border-slate-700/80 bg-[#0f1d2d] p-6 shadow-[0_20px_50px_rgba(15,23,42,0.65)]">
+            <div className="mb-5 flex items-center justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.2em] text-indigo-300">Update Project</p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">Rename board</h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUpdateModal(false);
+                  setProjectName("");
+                  setEditingBoardId(null);
+                  setCreateError("");
+                }}
+                className="text-2xl text-slate-400 transition hover:text-white"
+              >
+                ×
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitUpdateBoard} className="space-y-4">
+              <label className="block">
+                <span className="mb-2 block text-sm font-medium text-slate-300">Project Name</span>
+                <input
+                  type="text"
+                  value={projectName}
+                  onChange={(event) => setProjectName(event.target.value)}
+                  placeholder="Website Development"
+                  className="w-full rounded-xl border border-slate-600/80 bg-slate-950/30 px-3.5 py-2.5 text-base text-slate-100 placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40"
+                  autoFocus
+                />
+              </label>
+
+              {createError && <p className="text-sm text-red-400">{createError}</p>}
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowUpdateModal(false);
+                    setProjectName("");
+                    setEditingBoardId(null);
+                    setCreateError("");
+                  }}
+                  className="rounded-xl border border-slate-700/80 bg-slate-800/50 px-4 py-2.5 text-sm font-medium text-slate-200 transition hover:bg-slate-700/60"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={updatingBoard}
+                  className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-600/20 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {updatingBoard ? "Updating..." : "Save Changes"}
                 </button>
               </div>
             </form>

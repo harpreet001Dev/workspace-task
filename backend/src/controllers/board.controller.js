@@ -76,3 +76,30 @@ export const getBoard = asyncHandler(async (req, res) => {
     data: board,
   });
 })
+
+export const updateBoard = asyncHandler(async (req, res) => {
+  const board = await boardService.updateBoard(
+    req.params.boardId,
+    req.user._id,
+    req.body,
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "Board updated successfully",
+    data: board,
+  });
+})
+
+export const deleteBoard = asyncHandler(async (req, res) => {
+  const board = await boardService.deleteBoard(
+    req.params.boardId,
+    req.user._id,
+  );
+
+  res.status(200).json({
+    success: true,
+    message: "Board deleted successfully",
+    data: board,
+  });
+})

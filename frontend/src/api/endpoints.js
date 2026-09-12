@@ -41,6 +41,14 @@ const endPoints={
         url:'/board/:boardId',
         auth:true
     },
+    UpdateBoard:{
+        url:'/board/:boardId',
+        auth:true
+    },
+    DeleteBoard:{
+        url:'/board/:boardId',
+        auth:true
+    },
     CreateBoard:{
         url:'/board/:workspaceId',
         auth:true

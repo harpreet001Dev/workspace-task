@@ -5,6 +5,7 @@ import Board from "../models/Board.js";
 import BoardMember from "../models/BoardMember.js";
 import WorkspaceMember from '../models/WorkspaceMember.js'
 import Column from '../models/Column.js';
+import Task from '../models/Task.js';
 import mongoose from 'mongoose';
 import auditLogQueue from "../queues/auditLog.queue.js";
 import redisConnection from "../config/redis.js";
@@ -313,6 +314,22 @@ const getUserBoards = async (userId, workspaceId, query) => {
       _id: 1,
       name: 1,
       createdAt: 1,
+      columns: {
+        $map: {
+          input: {
+            $sortArray: {
+              input: "$columns",
+              sortBy: { order: 1 },
+            },
+          },
+          as: "column",
+          in: {
+            _id: "$$column._id",
+            name: "$$column.name",
+            order: "$$column.order",
+          },
+        },
+      },
       totalMembers: {
         $size: "$members",
       },
@@ -337,11 +354,48 @@ const getUserBoards = async (userId, workspaceId, query) => {
 
   const boards = await Board.aggregate(pipeline);
 
+  const boardIds = boards.map((board) => board._id);
+
+  const boardMembers = await BoardMember.find({
+    boardId: { $in: boardIds },
+  })
+    .populate("userId", "_id name email")
+    .lean();
+
+  const membersByBoardId = {};
+
+  boardMembers.forEach((member) => {
+    const boardId = member.boardId.toString();
+
+    if (!membersByBoardId[boardId]) {
+      membersByBoardId[boardId] = [];
+    }
+
+    membersByBoardId[boardId].push({
+      _id: member.userId?._id || member.userId,
+      name: member.userId?.name || "Unknown",
+      email: member.userId?.email || "",
+      role: member.role || "member",
+    });
+  });
+
+  const enrichedBoards = boards.map((board) => ({
+    ...board,
+    columns: (board.columns || []).map((column) => ({
+      _id: column._id,
+      name: column.name,
+      order: column.order,
+    })),
+    members: membersByBoardId[board._id.toString()] || [],
+    totalMembers: membersByBoardId[board._id.toString()]?.length || 0,
+    totalColumns: board.columns?.length || 0,
+  }));
+
   // 9. Create next cursor
   let nextCursor = null;
 
-  if (boards.length > 0) {
-    const lastBoard = boards[boards.length - 1];
+  if (enrichedBoards.length > 0) {
+    const lastBoard = enrichedBoards[enrichedBoards.length - 1];
 
     nextCursor = Buffer.from(
       JSON.stringify({
@@ -352,10 +406,10 @@ const getUserBoards = async (userId, workspaceId, query) => {
   }
 
   // 10. Check if more boards may exist
-  const hasMore = boards.length === pageSize;
+  const hasMore = enrichedBoards.length === pageSize;
 
   return {
-    boards,
+    boards: enrichedBoards,
     nextCursor,
     hasMore,
   };
@@ -400,4 +454,51 @@ const getBoardDetails = async (boardId, userId) => {
   };
 };
 
-export default { createBoard, addBoardMember, getUserBoards, getBoardDetails }
+const updateBoard = async (boardId, userId, data) => {
+  const board = await Board.findById(boardId);
+
+  if (!board) {
+    throw new ApiError(404, "Board not found");
+  }
+
+  if (board.createdBy.toString() !== userId.toString()) {
+    throw new ApiError(403, "Only the board creator can update this board");
+  }
+
+  const { name } = data;
+
+  if (!name || !name.trim()) {
+    throw new ApiError(400, "Board name is required");
+  }
+
+  const updatedBoard = await Board.findByIdAndUpdate(
+    boardId,
+    { $set: { name: name.trim() } },
+    { new: true }
+  ).lean();
+
+  return updatedBoard;
+};
+
+const deleteBoard = async (boardId, userId) => {
+  const board = await Board.findById(boardId);
+
+  if (!board) {
+    throw new ApiError(404, "Board not found");
+  }
+
+  if (board.createdBy.toString() !== userId.toString()) {
+    throw new ApiError(403, "Only the board creator can delete this board");
+  }
+
+  await Promise.all([
+    BoardMember.deleteMany({ boardId }),
+    Column.deleteMany({ boardId }),
+    Task.deleteMany({ boardId }),
+    Board.findByIdAndDelete(boardId),
+  ]);
+
+  return board;
+};
+
+export default { createBoard, addBoardMember, getUserBoards, getBoardDetails, updateBoard, deleteBoard }

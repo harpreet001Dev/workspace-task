@@ -3,7 +3,7 @@ import validate from "../middleware/validate.middleware.js";
 import authtenticateUser from "../middleware/auth.middleware.js";
 import { createBoardSchema , createColumnSchema, addBoardMemberSchema, getBoardsQuerySchema} from "../validatioins/board.validation.js";
 import authorizeRole from "../middleware/role.middleware.js";
-import { createBoard ,createColumn,addBoardMember,getBoards,getBoard} from "../controllers/board.controller.js";
+import { createBoard ,createColumn,addBoardMember,getBoards,getBoard,updateBoard,deleteBoard} from "../controllers/board.controller.js";
 
 
 const router = express.Router();
@@ -44,6 +44,21 @@ router.get(
     authtenticateUser,
     authorizeRole("owner", "member"),
     getBoard
+)
+
+router.patch(
+    "/:boardId",
+    authtenticateUser,
+    authorizeRole("owner"),
+    validate(createBoardSchema),
+    updateBoard
+)
+
+router.delete(
+    "/:boardId",
+    authtenticateUser,
+    authorizeRole("owner"),
+    deleteBoard
 )
 
 export default router;
