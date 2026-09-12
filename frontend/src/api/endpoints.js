@@ -1,93 +1,93 @@
 
 
-const endPoints={
-    LOGIN:{
-        url:'/auth/login',
-        auth:false
+const endPoints = {
+    LOGIN: {
+        url: '/auth/login',
+        auth: false
     },
-    REGISTER:{
-        url:'/auth/register',
-        auth:false
+    REGISTER: {
+        url: '/auth/register',
+        auth: false
     },
-    LOGOUT:{
-        url:'/auth/logout',
-        auth:false
+    LOGOUT: {
+        url: '/auth/logout',
+        auth: false
     },
-    CreateWorkspace:{
-        url:'/workspace/create',
-        auth:true
+    CreateWorkspace: {
+        url: '/workspace/create',
+        auth: true
     },
-    CreateInvite:{
-        url:'/workspace/invite',
-        auth:true
+    CreateInvite: {
+        url: '/workspace/invite',
+        auth: true
     },
-    AcceptInvite:{
-        url:'/workspace/invite/:token/accept',
-        auth:true
+    AcceptInvite: {
+        url: '/workspace/invite/:token/accept',
+        auth: true
     },
-    Dashboard:{
-        url:'/dashboard',
-        auth:true
+    Dashboard: {
+        url: '/dashboard',
+        auth: true
     },
-    RecentActivities:{
-        url:'/dashboard/recent-activity',
-        auth:true
+    RecentActivities: {
+        url: '/dashboard/recent-activity',
+        auth: true
     },
-    Board:{
-        url:'/board',
-        auth:true
+    Board: {
+        url: '/board',
+        auth: true
     },
-    GetBoard:{
-        url:'/board/:boardId',
-        auth:true
+    GetBoard: {
+        url: '/board/:boardId',
+        auth: true
     },
-    UpdateBoard:{
-        url:'/board/:boardId',
-        auth:true
+    UpdateBoard: {
+        url: '/board/:boardId',
+        auth: true
     },
-    DeleteBoard:{
-        url:'/board/:boardId',
-        auth:true
+    DeleteBoard: {
+        url: '/board/:boardId',
+        auth: true
     },
-    CreateBoard:{
-        url:'/board/:workspaceId',
-        auth:true
+    CreateBoard: {
+        url: '/board/:workspaceId',
+        auth: true
     },
-    CreateTask:{
-        url:'/task/:boardId',
-        auth:true
+    CreateTask: {
+        url: '/task/:boardId',
+        auth: true
     },
-    GetTasks:{
-        url:'/task/:boardId/get',
-        auth:true
+    GetTasks: {
+        url: '/task/:boardId/get',
+        auth: true
     },
-    UpdateTask:{
-        url:'/task/:taskId',
-        auth:true
+    UpdateTask: {
+        url: '/task/:taskId',
+        auth: true
     },
-    DeleteTask:{
-        url:'/task/:taskId',
-        auth:true
+    DeleteTask: {
+        url: '/task/:taskId',
+        auth: true
     },
-    GetWorkspaceUsers:{
-        url:'/workspace/users',
-        auth:true
+    GetWorkspaceUsers: {
+        url: '/workspace/users',
+        auth: true
     },
-    AddBoardMember:{
-        url:'/board/:boardId/members',
-        auth:true
+    AddBoardMember: {
+        url: '/board/:boardId/members',
+        auth: true
     },
-    MoveTask:{
-        url:'/task/:taskId/move',
-        auth:true
+    MoveTask: {
+        url: '/task/:taskId/move',
+        auth: true
     },
-    SearchBoard:{
-        url:'/board/search',
-        auth:true
+    SearchBoard: {
+        url: '/board/search',
+        auth: true
     },
-    Profile:{
-        url:'/dashboard/profile',
-        auth:true
+    Profile: {
+        url: '/dashboard/profile',
+        auth: true
     }
 }
 

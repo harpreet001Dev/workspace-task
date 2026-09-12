@@ -1,0 +1,51 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout backend code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Security audit
+        working-directory: backend
+        run: npm audit --audit-level=high
+
+      - name: Run tests
+        working-directory: backend
+        run: npm test
+
+      - name: Start backend application
+        working-directory: backend
+        env:
+            MONGO_URI: ${{ secrets.MONGO_URI }}
+        run: npm start &
+    
+      - name: Check Backend Health
+        run: curl --fail http://localhost:${PORT}/health
+
