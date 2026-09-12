@@ -42,12 +42,23 @@ jobs:
 
       - name: Create backend env
         run: |
-          echo "NODE_ENV=test" >> backend/.env
-          echo "PORT=${{ secrets.PORT || '5000' }}" >> backend/.env
-          echo "MONGO_URI=${{ secrets.MONGO_URI || 'mongodb://mongodb:27017/workspace' }}" >> backend/.env
-          echo "ACCESS_TOKEN_SECRET=${{ secrets.ACCESS_TOKEN_SECRET || 'ci_access_token_secret_32chars_long!!' }}" >> backend/.env
-          echo "REFRESH_TOKEN_SECRET=${{ secrets.REFRESH_TOKEN_SECRET || 'ci_refresh_token_secret_32chars_long!!' }}" >> backend/.env
-          echo "FRONTEND_URL=http://localhost:5173" >> backend/.env
+          PORT="${{ secrets.PORT }}"
+          PORT="${PORT:-5000}"
+          MONGO_URI="${{ secrets.MONGO_URI }}"
+          MONGO_URI="${MONGO_URI:-mongodb://mongodb:27017/workspace?directConnection=true}"
+          ACCESS_TOKEN_SECRET="${{ secrets.ACCESS_TOKEN_SECRET }}"
+          ACCESS_TOKEN_SECRET="${ACCESS_TOKEN_SECRET:-ci_access_token_secret_32chars_long!!}"
+          REFRESH_TOKEN_SECRET="${{ secrets.REFRESH_TOKEN_SECRET }}"
+          REFRESH_TOKEN_SECRET="${REFRESH_TOKEN_SECRET:-ci_refresh_token_secret_32chars_long!!}"
+
+          cat <<EOF > backend/.env
+          NODE_ENV=test
+          PORT=${PORT}
+          MONGO_URI=${MONGO_URI}
+          ACCESS_TOKEN_SECRET=${ACCESS_TOKEN_SECRET}
+          REFRESH_TOKEN_SECRET=${REFRESH_TOKEN_SECRET}
+          FRONTEND_URL=http://localhost:5173
+          EOF
 
       - name: Start Docker Compose
         run: docker compose up -d
@@ -55,18 +66,24 @@ jobs:
       - name: Check Docker containers
         run: docker compose ps
 
-      - name: Show API logs
-        run: docker compose logs api --tail=100
-
       - name: Check Backend Health
         run: |
-          PORT="${{ secrets.PORT || '5000' }}"
-          curl --fail --retry 10 --retry-connrefused --retry-delay 2 --max-time 10 http://localhost:${PORT}/health || {
-            echo "Health check failed! Showing container logs:"
-            docker compose logs api --tail=50
-            docker compose logs mongodb --tail=50
-            exit 1
-          }
+          echo "Waiting for Backend to become ready at http://localhost:5000/health..."
+          for i in $(seq 1 30); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:5000/health || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Backend is healthy! Received HTTP 200 (attempt $i)"
+              curl -s http://localhost:5000/health
+              exit 0
+            fi
+            echo "Attempt $i: Backend returned HTTP $STATUS, waiting 2s..."
+            sleep 2
+          done
+
+          echo "Backend failed to become healthy within 60s! Container logs:"
+          docker compose logs api --tail=50
+          docker compose logs mongodb --tail=50
+          exit 1
 
       - name: Run tests
         working-directory: backend
